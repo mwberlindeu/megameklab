@@ -29,6 +29,8 @@ import megamek.common.logging.LogLevel;
 import megamek.common.logging.MMLogger;
 import megameklab.com.ui.Mek.MainUI;
 
+//MWBerlin: potentially relevant for large wet navy vessels - first priority (construction)
+
 public class MegaMekLab {
     public static final String VERSION = "0.43.5-git";
 
