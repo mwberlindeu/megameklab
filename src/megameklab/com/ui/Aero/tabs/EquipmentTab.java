@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
@@ -40,9 +41,12 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
+import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
@@ -50,6 +54,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.RowFilter;
 import javax.swing.RowSorter;
 import javax.swing.SortOrder;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.TableColumn;
@@ -64,6 +69,7 @@ import megamek.common.MiscType;
 import megamek.common.Mounted;
 import megamek.common.WeaponType;
 import megamek.common.weapons.artillery.ArtilleryWeapon;
+import megamek.common.weapons.bayweapons.BayWeapon;
 import megameklab.com.ui.EntitySource;
 import megameklab.com.util.CriticalTableModel;
 import megameklab.com.util.EquipmentTableModel;
@@ -83,7 +89,7 @@ public class EquipmentTab extends ITab implements ActionListener {
     private static final int T_BALLISTIC =  1;
     private static final int T_MISSILE   =  2;
     private static final int T_ARTILLERY =  3;
-    private static final int T_PHYSICAL  =  4;
+    private static final int T_CAPITAL   =  4;
     private static final int T_WEAPON    =  5;
     private static final int T_AMMO      =  6;
     private static final int T_OTHER     =  7;
@@ -100,7 +106,7 @@ public class EquipmentTab extends ITab implements ActionListener {
 
     private JRadioButton rbtnStats = new JRadioButton("Stats");
     private JRadioButton rbtnFluff = new JRadioButton("Fluff");
-
+    private JSpinner spnAddCount = new JSpinner(new SpinnerNumberModel(1, 1, null, 1));
 
     private TableRowSorter<EquipmentTableModel> equipmentSorter;
 
@@ -114,6 +120,8 @@ public class EquipmentTab extends ITab implements ActionListener {
     private String ADD_COMMAND = "ADD";
     private String REMOVE_COMMAND = "REMOVE";
     private String REMOVEALL_COMMAND = "REMOVEALL";
+    
+    private final Dimension SPINNER_SIZE = new Dimension(55, 25);
 
     public static String getTypeName(int type) {
         switch(type) {
@@ -127,8 +135,8 @@ public class EquipmentTab extends ITab implements ActionListener {
             return "Missile Weapons";
         case T_ARTILLERY:
             return "Artillery Weapons";
-        case T_PHYSICAL:
-            return "Physical Weapons";
+        case T_CAPITAL:
+            return "Capital Weapons";
         case T_AMMO:
             return "Ammunition";
         case T_OTHER:
@@ -313,6 +321,27 @@ public class EquipmentTab extends ITab implements ActionListener {
         databasePanel.add(viewPanel, gbc);
 
         gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.gridwidth = 1;
+        gbc.insets = new Insets(2,2,2,2);
+        gbc.fill = java.awt.GridBagConstraints.NONE;
+        gbc.weightx = 0.0;
+        gbc.weighty = 0.0;
+        gbc.anchor = java.awt.GridBagConstraints.WEST;
+        databasePanel.add(new JLabel("Number to add:"), gbc);
+
+        gbc.gridx = 1;
+        gbc.gridy = 1;
+        gbc.gridwidth = 1;
+        gbc.insets = new Insets(2,2,2,2);
+        gbc.fill = java.awt.GridBagConstraints.NONE;
+        gbc.weightx = 0.0;
+        gbc.weighty = 0.0;
+        gbc.anchor = java.awt.GridBagConstraints.WEST;
+        setFieldSize(spnAddCount, SPINNER_SIZE);
+        databasePanel.add(spnAddCount, gbc);
+
+        gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.gridwidth = 1;
         gbc.fill = java.awt.GridBagConstraints.NONE;
@@ -331,7 +360,7 @@ public class EquipmentTab extends ITab implements ActionListener {
 
         gbc.insets = new Insets(2,0,0,0);
         gbc.gridx = 0;
-        gbc.gridy = 1;
+        gbc.gridy = 2;
         gbc.gridwidth = 4;
         gbc.fill = java.awt.GridBagConstraints.BOTH;
         gbc.weightx = 1.0;
@@ -341,15 +370,17 @@ public class EquipmentTab extends ITab implements ActionListener {
         gbc.gridx = 0;
         gbc.gridy = 1;
         gbc.gridwidth = 2;
-        gbc.fill = java.awt.GridBagConstraints.VERTICAL;
+        gbc.fill = java.awt.GridBagConstraints.BOTH;
         gbc.weightx = 1.0;
         gbc.weighty = 1.0;
         loadoutPanel.add(equipmentScroll, gbc);
 
+        JSplitPane pane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
+                new JScrollPane(loadoutPanel),
+                new JScrollPane(databasePanel));
+        pane.setOneTouchExpandable(true);
         setLayout(new BorderLayout());
-        this.add(loadoutPanel, BorderLayout.WEST);
-        this.add(databasePanel, BorderLayout.CENTER);
-
+        add(pane, BorderLayout.CENTER);
     }
 
     public void addRefreshedListener(RefreshListener l) {
@@ -358,7 +389,12 @@ public class EquipmentTab extends ITab implements ActionListener {
 
     private void loadEquipmentTable() {
 
-        for (Mounted mount : getAero().getWeaponList()) {
+        // On this table we want to show individual weapons, not bays.
+        for (Mounted mount : getAero().getTotalWeaponList()) {
+            if ((mount.getType() instanceof BayWeapon)
+                    || mount.isWeaponGroup()) {
+                continue;
+            }
             equipmentList.addCrit(mount);
         }
 
@@ -445,25 +481,43 @@ public class EquipmentTab extends ITab implements ActionListener {
     }
 
     private void addEquipment(EquipmentType equip) {
-        boolean success = false;
         Mounted mount = null;
         boolean isMisc = equip instanceof MiscType;
         if (isMisc && equip.hasFlag(MiscType.F_TARGCOMP)) {
             if (!UnitUtil.hasTargComp(getAero())) {
                 mount = UnitUtil.updateTC(getAero(), equip);
-                success = mount != null;
+                if (null != mount) {
+                    equipmentList.addCrit(mount);
+                }
             }        
         } else {
-            try {
-                mount = new Mounted(getAero(), equip);
-                getAero().addEquipment(mount, Entity.LOC_NONE, false);
-                success = true;
-            } catch (LocationFullException lfe) {
-                // this can't happen, we add to Entity.LOC_NONE
+            int count = (Integer)spnAddCount.getValue();
+            if (getAero().usesWeaponBays() && (equip instanceof AmmoType)) {
+                Mounted aMount = UnitUtil.findUnallocatedAmmo(getAero(), equip);
+                if (null != aMount) {
+                    aMount.setShotsLeft(aMount.getUsableShotsLeft() + ((AmmoType)equip).getShots() * count);
+                    return;
+                } else {
+                    mount = new Mounted(getAero(), equip);
+                    mount.setShotsLeft(((AmmoType)equip).getShots() * count);
+                    try {
+                        getAero().addEquipment(mount, Entity.LOC_NONE, false);
+                        equipmentList.addCrit(mount);
+                    } catch (LocationFullException lfe) {
+                        // this can't happen, we add to Entity.LOC_NONE
+                    }
+                }
+            } else {
+                try {
+                    for (int i = 0; i < count; i++) {
+                        mount = new Mounted(getAero(), equip);
+                        getAero().addEquipment(mount, Entity.LOC_NONE, false);
+                        equipmentList.addCrit(mount);
+                    }
+                } catch (LocationFullException lfe) {
+                    // this can't happen, we add to Entity.LOC_NONE
+                }
             }
-        }
-        if (success) {
-            equipmentList.addCrit(mount);
         }
     }
 
@@ -484,8 +538,12 @@ public class EquipmentTab extends ITab implements ActionListener {
                 equipmentList.removeMounted(row);
             }
             equipmentList.removeCrits(selectedRows);
+            if (getAero().isLargeCraft()) {
+                removeEmptyBays();
+            }
         } else if (e.getActionCommand().equals(REMOVEALL_COMMAND)) {
             removeAllEquipment();
+            removeEmptyBays();
         } else {
             return;
         }
@@ -505,6 +563,14 @@ public class EquipmentTab extends ITab implements ActionListener {
         }
         equipmentList.removeAllCrits();
     }
+    
+    private void removeEmptyBays() {
+        List<Mounted> emptyBays = getSmallCraft().getWeaponBayList().stream()
+                .filter(bay -> bay.getBayWeapons().isEmpty()).collect(Collectors.toList());
+        for (Mounted bay : emptyBays) {
+            UnitUtil.removeMounted(getAero(), bay);
+        }
+    }
 
     private void fireTableRefresh() {
         equipmentList.updateUnit(getAero());
@@ -513,6 +579,7 @@ public class EquipmentTab extends ITab implements ActionListener {
             refresh.refreshStatus();
             refresh.refreshBuild();
             refresh.refreshPreview();
+            refresh.refreshSummary();
         }
     }
 
@@ -531,6 +598,14 @@ public class EquipmentTab extends ITab implements ActionListener {
                 WeaponType wtype = null;
                 if (etype instanceof WeaponType) {
                     wtype = (WeaponType)etype;
+                    if (wtype instanceof BayWeapon) {
+                        return false;
+                    }
+                    if ((wtype.isCapital() || (wtype.getAmmoType() == AmmoType.T_SCREEN_LAUNCHER))
+                            && (nType != T_CAPITAL)
+                            && (nType != T_WEAPON)) {
+                        return false;
+                    }
                 }
                 AmmoType atype = null;
                 if (etype instanceof AmmoType) {
@@ -544,7 +619,7 @@ public class EquipmentTab extends ITab implements ActionListener {
                 }
                 Aero aero = getAero();
                 if (((nType == T_OTHER) && UnitUtil.isAeroEquipment(etype, getAero()))
-                        || (((nType == T_WEAPON) && (UnitUtil.isAeroWeapon(etype, aero) || UnitUtil.isPhysicalWeapon(etype))))
+                        || (((nType == T_WEAPON) && UnitUtil.isAeroWeapon(etype, aero) && !(etype instanceof BayWeapon)))
                         || ((nType == T_ENERGY) && UnitUtil.isAeroWeapon(etype, aero)
                             && (wtype != null) && (wtype.hasFlag(WeaponType.F_ENERGY)
                             || (wtype.hasFlag(WeaponType.F_PLASMA) && (wtype.getAmmoType() == AmmoType.T_PLASMA))))
@@ -554,8 +629,11 @@ public class EquipmentTab extends ITab implements ActionListener {
                         || ((nType == T_MISSILE) && UnitUtil.isAeroWeapon(etype, aero)
                             && (wtype != null) && ((wtype.hasFlag(WeaponType.F_MISSILE)
                                     && (wtype.getAmmoType() != AmmoType.T_NA)) || (wtype.getAmmoType() == AmmoType.T_C3_REMOTE_SENSOR)))
+                        || ((nType == T_CAPITAL) && UnitUtil.isAeroWeapon(etype, aero)
+                                && (wtype != null) && (wtype.isCapital()
+                                        || (wtype.getAmmoType() == AmmoType.T_SCREEN_LAUNCHER)))
                         || ((nType == T_ARTILLERY) && UnitUtil.isAeroWeapon(etype, aero)
-                            && (wtype != null) && (wtype instanceof ArtilleryWeapon))
+                                && (wtype != null) && (wtype instanceof ArtilleryWeapon))
                         || (((nType == T_AMMO) & (atype != null)) && UnitUtil.canUseAmmo(aero, atype))) {
                     if (!eSource.getTechManager().isLegal(etype)) {
                         return false;
