@@ -52,6 +52,7 @@ import megamek.common.Entity;
 import megamek.common.FixedWingSupport;
 import megamek.common.GunEmplacement;
 import megamek.common.Infantry;
+import megamek.common.Largewetnavy;
 import megamek.common.Jumpship;
 import megamek.common.Mech;
 import megamek.common.MechFileParser;
@@ -384,6 +385,24 @@ public class MenuBarCreator extends JMenuBar implements ClipboardOwner {
             });
             unitMenu.add(item);
         }
+
+        //mwberlin: Adding menu selection for Large Naval Vessel Support Vehicles
+        
+        if (!(parentFrame.getEntity() instanceof Largewetnavy) || (parentFrame.getEntity() instanceof BattleArmor)) {
+            item = new JMenuItem();
+            item.setText("Large Naval Vessel Support Vehicle");
+            item.setMnemonic(KeyEvent.VK_LWN);
+            item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_LWN,
+                    Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+            item.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    jMenuLoadLargewetnavy();
+                }
+
+            });
+            unitMenu.add(item);
+        }
+        
         
         JMenu pMenu = new JMenu("Primitive/Retro");
         if (!(en instanceof Mech)

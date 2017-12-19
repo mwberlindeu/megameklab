@@ -14,7 +14,7 @@
  * for more details.
  */
 
-package megameklab.com.ui.Vehicle.tabs;
+package megameklab.com.ui.Largewetnavy.tabs;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -61,10 +61,7 @@ import megamek.common.EquipmentType;
 import megamek.common.LocationFullException;
 import megamek.common.MiscType;
 import megamek.common.Mounted;
-import megamek.common.SupportTank;
-import megamek.common.SupportVTOL;
-import megamek.common.Tank;
-import megamek.common.VTOL;
+import megamek.common.Largewetnavy;
 import megamek.common.WeaponType;
 import megamek.common.weapons.artillery.ArtilleryWeapon;
 import megameklab.com.ui.EntitySource;
@@ -356,6 +353,8 @@ public class EquipmentTab extends ITab implements ActionListener {
         refresh = l;
     }
 
+    // MWBerlin: marked for further work 361-398
+    
     private void loadEquipmentTable() {
 
         for (Mounted mount : getTank().getWeaponList()) {

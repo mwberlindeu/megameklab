@@ -14,7 +14,7 @@
  * details.
  */
 
-package megameklab.com.ui.Vehicle.tabs;
+package megameklab.com.ui.Largewetnavy.tabs;
 
 import java.awt.BorderLayout;
 import java.awt.GridBagConstraints;
@@ -35,13 +35,11 @@ import megamek.common.LocationFullException;
 import megamek.common.MiscType;
 import megamek.common.Mounted;
 import megamek.common.SimpleTechLevel;
-import megamek.common.SuperHeavyTank;
-import megamek.common.Tank;
+import megamek.common.Largewetnavy;
 import megamek.common.TroopSpace;
-import megamek.common.VTOL;
 import megamek.common.verifier.TestEntity;
 import megameklab.com.ui.EntitySource;
-import megameklab.com.ui.Vehicle.views.SummaryView;
+import megameklab.com.ui.Largewetnavy.views.SummaryView;
 import megameklab.com.ui.view.ArmorAllocationView;
 import megameklab.com.ui.view.BasicInfoView;
 import megameklab.com.ui.view.CVChassisView;
@@ -194,6 +192,8 @@ public class StructureTab extends ITab implements CVBuildListener {
     public void addRefreshedListener(RefreshListener l) {
         refresh = l;
     }
+    
+    // MWBerlin: marked for further work 198-245
     
     private void removeTurret(int loc) {
         for (int slot = 0; slot < getTank().getNumberOfCriticals(loc); slot++) {

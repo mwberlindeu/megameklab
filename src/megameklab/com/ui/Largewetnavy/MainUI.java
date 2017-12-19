@@ -14,7 +14,7 @@
  * details.
  */
 
-package megameklab.com.ui.Vehicle;
+package megameklab.com.ui.Largewetnavy;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -33,15 +33,13 @@ import megamek.common.EquipmentType;
 import megamek.common.ITechManager;
 import megamek.common.MechSummaryCache;
 import megamek.common.SimpleTechLevel;
-import megamek.common.SuperHeavyTank;
-import megamek.common.Tank;
+import megamek.common.Largewetnavy;
 import megamek.common.TechConstants;
-import megamek.common.VTOL;
 import megameklab.com.ui.MegaMekLabMainUI;
-import megameklab.com.ui.Vehicle.tabs.BuildTab;
-import megameklab.com.ui.Vehicle.tabs.EquipmentTab;
-import megameklab.com.ui.Vehicle.tabs.PreviewTab;
-import megameklab.com.ui.Vehicle.tabs.StructureTab;
+import megameklab.com.ui.Largewetnavy.tabs.BuildTab;
+import megameklab.com.ui.Largewetnavy.tabs.EquipmentTab;
+import megameklab.com.ui.Largewetnavy.tabs.PreviewTab;
+import megameklab.com.ui.Largewetnavy.tabs.StructureTab;
 import megameklab.com.util.MenuBarCreator;
 import megameklab.com.util.UnitUtil;
 
@@ -66,7 +64,7 @@ public class MainUI extends MegaMekLabMainUI {
     public MainUI() {
 
         super();
-        createNewUnit(Entity.ETYPE_TANK, false, false);
+        createNewUnit(Entity.ETYPE_LARGEWETNAVY, false, false);
         setTitle(getEntity().getChassis() + " " + getEntity().getModel() + ".blk");
         menubarcreator = new MenuBarCreator(this);
         setJMenuBar(menubarcreator);
@@ -168,6 +166,8 @@ public class MainUI extends MegaMekLabMainUI {
     public void refreshWeapons() {
     }
 
+    // MWBerlin: marked for further work 171-231
+    
     @Override
     public void createNewUnit(long entityType, boolean isPrimitive, boolean isIndustrial, Entity oldEntity) {
         if (entityType == Entity.ETYPE_VTOL) {

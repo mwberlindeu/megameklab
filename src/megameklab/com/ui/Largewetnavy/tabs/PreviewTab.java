@@ -14,7 +14,7 @@
  * details.
  */
 
-package megameklab.com.ui.Vehicle.tabs;
+package megameklab.com.ui.Largewetnavy.tabs;
 
 import java.awt.BorderLayout;
 import java.awt.Color;

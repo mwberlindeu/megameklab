@@ -14,7 +14,7 @@
  * details.
  */
 
-package megameklab.com.ui.Vehicle.tabs;
+package megameklab.com.ui.Largewetnavy.tabs;
 
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
@@ -32,8 +32,8 @@ import megamek.common.MechFileParser;
 import megamek.common.Mounted;
 import megamek.common.loaders.EntityLoadingException;
 import megameklab.com.ui.EntitySource;
-import megameklab.com.ui.Vehicle.views.BuildView;
-import megameklab.com.ui.Vehicle.views.CriticalView;
+import megameklab.com.ui.Largewetnavy.views.BuildView;
+import megameklab.com.ui.Largewetnavy.views.CriticalView;
 import megameklab.com.util.CriticalTableModel;
 import megameklab.com.util.ITab;
 import megameklab.com.util.RefreshListener;

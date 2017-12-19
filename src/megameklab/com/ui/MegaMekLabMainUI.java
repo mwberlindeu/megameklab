@@ -16,8 +16,6 @@
 
 package megameklab.com.ui;
 
-//MWBerlin: potentially relevant for large wet navy vessels - first priority (construction)
-
 import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.event.WindowAdapter;
