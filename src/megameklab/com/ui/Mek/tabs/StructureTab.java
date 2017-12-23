@@ -206,7 +206,7 @@ public class StructureTab extends ITab implements MekBuildListener {
         getMech().clearCockpitCrits();
         getMech().clearGyroCrits();
         getMech().clearEngineCrits();
-        removeSystemCrits(LandAirMech.LAM_LANDING_GEAR);
+        removeSystemCrits(LandAirMech.LAM_LANDING_GEAR, Mech.LOC_CT);
 
         int[] ctEngine = getMech().getEngine().getCenterTorsoCriticalSlots(getMech().getGyroType());
         int lastEngine = ctEngine[ctEngine.length - 1];
@@ -385,19 +385,17 @@ public class StructureTab extends ITab implements MekBuildListener {
         }
 
     }
+    
+    private void removeSystemCrits(int systemType, int loc) {
+        for (int slot = 0; slot < getMech().getNumberOfCriticals(loc); slot++) {
+            CriticalSlot cs = getMech().getCritical(loc, slot);
 
-    public void removeSystemCrits(int systemType) {
-        for (int loc = 0; loc < getMech().locations(); loc++) {
-            for (int slot = 0; slot < getMech().getNumberOfCriticals(loc); slot++) {
-                CriticalSlot cs = getMech().getCritical(loc, slot);
+            if ((cs == null) || (cs.getType() != CriticalSlot.TYPE_SYSTEM)) {
+                continue;
+            }
 
-                if ((cs == null) || (cs.getType() != CriticalSlot.TYPE_SYSTEM)) {
-                    continue;
-                }
-
-                if (cs.getIndex() == systemType) {
-                    getMech().setCritical(loc, slot, null);
-                }
+            if (cs.getIndex() == systemType) {
+                getMech().setCritical(loc, slot, null);
             }
         }
     }
@@ -1071,12 +1069,21 @@ public class StructureTab extends ITab implements MekBuildListener {
                 case Mech.LOC_CT:
                 case Mech.LOC_LT:
                 case Mech.LOC_RT:
-                    double rear = Math.floor(allocate * .25);
-                    double front = Math.ceil(allocate * .75);
-                    pointsToAllocate -= (int) rear;
-                    pointsToAllocate -= (int) front;
-                    getMech().initializeArmor((int) front, location);
-                    getMech().initializeRearArmor((int) rear, location);
+                    int rear = (int) Math.floor(allocate * .25);
+                    int front = (int) Math.ceil(allocate * .75);
+                    // Make sure rounding doesn't add an additional point to this location,
+                    // which could cause us to run out of armor before we get to the end.
+                    if (rear + front > allocate) {
+                        if (front > rear * 3) {
+                            front--;
+                        } else {
+                            rear--;
+                        }
+                    }
+                    pointsToAllocate -= rear;
+                    pointsToAllocate -= front;
+                    getMech().initializeArmor(front, location);
+                    getMech().initializeRearArmor(rear, location);
                     break;
                 default:
                     getMech().initializeArmor((int) allocate, location);
