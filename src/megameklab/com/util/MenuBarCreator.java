@@ -56,7 +56,6 @@ import megamek.common.Largewetnavy;
 import megamek.common.Jumpship;
 import megamek.common.Mech;
 import megamek.common.MechFileParser;
-import megamek.common.MechTextView;
 import megamek.common.MechView;
 import megamek.common.SmallCraft;
 import megamek.common.Tank;
@@ -1273,7 +1272,7 @@ public class MenuBarCreator extends JMenuBar implements ClipboardOwner {
         }
 
         String unitName = parentFrame.getEntity().getChassis() + " " + parentFrame.getEntity().getModel();
-        MechTextView mview = new MechTextView(parentFrame.getEntity(), false);
+        MechView mview = new MechView(parentFrame.getEntity(), true, true, false);
 
         FileDialog fDialog = new FileDialog(parentFrame, "Save As", FileDialog.SAVE);
 
@@ -1303,7 +1302,7 @@ public class MenuBarCreator extends JMenuBar implements ClipboardOwner {
     }
 
     public void jMenuExportEntityClipboard_actionPerformed(ActionEvent event) {
-        MechTextView mview = new MechTextView(parentFrame.getEntity(), false);
+        MechView mview = new MechView(parentFrame.getEntity(), true, true, false);
         Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
         StringSelection stringSelection = new StringSelection(mview.getMechReadout());
         clipboard.setContents(stringSelection, this);
