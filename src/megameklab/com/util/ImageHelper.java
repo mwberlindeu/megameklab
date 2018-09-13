@@ -217,6 +217,10 @@ public class ImageHelper {
         File f = null;
         
         if (unit.getFluff().getMMLImagePath().length() > 0) {
+            f = new File(unit.getFluff().getMMLImagePath());
+            if (f.exists()) {
+                return f;
+            }
             f = new File(path, unit.getFluff().getMMLImagePath());
             if (f.exists()) {
                 return f;
@@ -224,21 +228,18 @@ public class ImageHelper {
         }
 
         path = new File(path, dir).getAbsolutePath();
-        f = new File(path, unit.getShortNameRaw() + ".png");
-        if (f.exists()) {
-            return f;
+        final String [] EXTENSIONS = { ".png", ".PNG", ".jpg", ".JPG", ".jpeg", ".JPEG", ".gif", ".GIF" };
+        for (String ext : EXTENSIONS) {
+            f = new File(path, unit.getShortNameRaw() + ext);
+            if (f.exists()) {
+                return f;
+            }
         }
-        f = new File(path, unit.getShortNameRaw() + ".jpg");
-        if (f.exists()) {
-            return f;
-        }
-        f = new File(path, unit.getShortNameRaw() + ".jpeg");
-        if (f.exists()) {
-            return f;
-        }
-        f = new File(path, unit.getShortNameRaw() + ".gif");
-        if (f.exists()) {
-            return f;
+        for (String ext : EXTENSIONS) {
+            f = new File(path, unit.getChassis() + ext);
+            if (f.exists()) {
+                return f;
+            }
         }
         f = new File(path, "hud.png");
         if (f.exists()) {

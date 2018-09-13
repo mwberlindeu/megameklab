@@ -1,0 +1,6 @@
+diff a/.classpath b/.classpath	(rejected hunks)
+@@ -2,3 +3,4 @@
++<<<<<<< HEAD
+ <?xml version="1.0" encoding="UTF-8"?>
+ <classpath>
+ 	<classpathentry kind="src" path="src"/>

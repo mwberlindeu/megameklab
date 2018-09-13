@@ -340,12 +340,14 @@ public class StructureTab extends ITab implements InfantryBuildListener {
     @Override
     public void chassisChanged(String chassis) {
         getInfantry().setChassis(chassis);
+        refresh.refreshHeader();
         refresh.refreshPreview();
     }
 
     @Override
     public void modelChanged(String model) {
         getInfantry().setModel(model);
+        refresh.refreshHeader();
         refresh.refreshPreview();
     }
 
@@ -367,6 +369,11 @@ public class StructureTab extends ITab implements InfantryBuildListener {
         panWeapons.setFromEntity(getInfantry());
         updateSpecializations();
         enableTabs();
+        weaponView.refresh();
+        fieldGunView.refresh();
+        armorView.refresh();
+        specializationView.refresh();
+        augmentationView.refresh();
     }
 
     @Override

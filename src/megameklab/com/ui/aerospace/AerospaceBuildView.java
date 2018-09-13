@@ -11,7 +11,7 @@
  * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
  * details.
  */
-package megameklab.com.ui.Dropship.views;
+package megameklab.com.ui.aerospace;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -214,8 +214,7 @@ public class AerospaceBuildView extends IView implements MouseListener {
                }
                for (BayWeaponCriticalTree l : arcViews) {
                    // Aerodyne small craft and dropships skip the aft side arcs
-                   if (getAero().hasETypeFlag(Entity.ETYPE_SMALL_CRAFT)
-                           && !getAero().isSpheroid() && !l.validForAerodyne()) {
+                   if (!l.validForUnit(getAero())) {
                        continue;
                    }
                    if (list.stream().anyMatch(eq -> l.canAdd(eq))) {
@@ -230,8 +229,7 @@ public class AerospaceBuildView extends IView implements MouseListener {
                        selectedRow, CriticalTableModel.EQUIPMENT);
                for (BayWeaponCriticalTree l : arcViews) {
                    // Aerodyne small craft and dropships skip the aft side arcs
-                   if (getAero().hasETypeFlag(Entity.ETYPE_SMALL_CRAFT)
-                           && !getAero().isSpheroid() && !l.validForAerodyne()) {
+                   if (!l.validForUnit(getAero())) {
                        continue;
                    }
                    

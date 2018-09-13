@@ -31,6 +31,7 @@ import java.io.FileOutputStream;
 import java.io.PrintStream;
 
 import javax.swing.BoxLayout;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
@@ -41,6 +42,8 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.KeyStroke;
+import javax.swing.UIManager;
+import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import megamek.MegaMek;
@@ -72,6 +75,7 @@ public class MenuBarCreator extends JMenuBar implements ClipboardOwner {
     private JMenu file = new JMenu("File");
     private JMenu help = new JMenu("Help");
     private JMenu validate = new JMenu("Validate");
+    private JMenu themeMenu = new JMenu("Themes");
     private MegaMekLabMainUI parentFrame = null;
 
     public MenuBarCreator(MegaMekLabMainUI parent) {
@@ -352,6 +356,17 @@ public class MenuBarCreator extends JMenuBar implements ClipboardOwner {
             unitMenu.add(item);
         }
 
+        if (!(en instanceof Jumpship)
+                || ((Aero)en).isPrimitive()) {
+            item = new JMenuItem();
+            item.setText("Jumpship/Warship/Space Station");
+            item.setMnemonic(KeyEvent.VK_J);
+            item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_J,
+                    Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+            item.addActionListener(e -> jMenuLoadAdvAero());
+            unitMenu.add(item);
+        }
+
         if (!(parentFrame.getEntity() instanceof Tank)) {
             item = new JMenuItem();
             item.setText("Combat Vehicle");
@@ -437,6 +452,14 @@ public class MenuBarCreator extends JMenuBar implements ClipboardOwner {
             item = new JMenuItem();
             item.setText("Dropship/Small Craft");
             item.addActionListener(e ->jMenuLoadPrimitiveDropship());
+            pMenu.add(item);
+        }
+        
+        if (!(en.hasETypeFlag(Entity.ETYPE_JUMPSHIP))
+                || !((Aero)en).isPrimitive()) {
+            item = new JMenuItem();
+            item.setText("Jumpship");
+            item.addActionListener(e ->jMenuLoadPrimitiveJumpship());
             pMenu.add(item);
         }
         
@@ -536,6 +559,9 @@ public class MenuBarCreator extends JMenuBar implements ClipboardOwner {
         exportMenu.add(item);
 
         file.add(exportMenu);
+        
+        JMenu themeMenu = createThemeMenu();
+        file.add(themeMenu);
 
         item = new JMenuItem("Configuration");
         item.setMnemonic(KeyEvent.VK_C);
@@ -630,13 +656,46 @@ public class MenuBarCreator extends JMenuBar implements ClipboardOwner {
         item.setText("Exit");
         item.setMnemonic(KeyEvent.VK_X);
         item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_X, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
-        item.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                jMenuExit_actionPerformed(e);
-            }
-        });
+        item.addActionListener(ev -> parentFrame.exit());
         file.add(item);
 
+    }
+    
+    /**
+     * Creates a menu that includes all installed look and feel options
+     * 
+     * @return The new menu
+     */
+    private JMenu createThemeMenu() {
+        themeMenu = new JMenu("Themes");
+        JCheckBoxMenuItem item;
+        for (LookAndFeelInfo plaf : UIManager.getInstalledLookAndFeels()) {
+            item = new JCheckBoxMenuItem(plaf.getName());
+            if (plaf.getName().equalsIgnoreCase(
+                    UIManager.getLookAndFeel().getName())) {
+                item.setSelected(true);
+            }
+            themeMenu.add(item);
+            item.addActionListener(ev -> {
+                parentFrame.changeTheme(plaf);
+                refreshThemeMenu(plaf.getName());
+            });
+        }
+        return themeMenu;
+    }
+    
+    /**
+     * Updates the checkbox items on the theme menu to show which is currently selected.
+     * 
+     * @param currentThemeName The name returned by {@link LookAndFeelInfo#getName()}
+     */
+    private void refreshThemeMenu(String currentThemeName) {
+        for (int i = 0; i < themeMenu.getItemCount(); i++) {
+            final JMenuItem item = themeMenu.getItem(i);
+            if (item instanceof JCheckBoxMenuItem) {
+                ((JCheckBoxMenuItem) item).setSelected(item.getText().equals(currentThemeName));
+            }
+        }
     }
 
     private void jMenuGetUnitBVFromCache_actionPerformed() {
@@ -1035,16 +1094,6 @@ public class MenuBarCreator extends JMenuBar implements ClipboardOwner {
         parentFrame.refreshAll();
     }
 
-    public void jMenuExit_actionPerformed(ActionEvent event) {
-        String quitMsg = "Do you really want to quit MegaMekLab?"; 
-        int response = JOptionPane.showConfirmDialog(null, quitMsg,
-                "Quit?", JOptionPane.YES_NO_OPTION,
-                JOptionPane.QUESTION_MESSAGE); 
-        if (response == JOptionPane.YES_OPTION) {
-            System.exit(0);
-        }
-    }
-
     private void jMenuLoadVehicle() {
         new megameklab.com.ui.Vehicle.MainUI();
         parentFrame.dispose();
@@ -1076,12 +1125,22 @@ public class MenuBarCreator extends JMenuBar implements ClipboardOwner {
     }
     
     private void jMenuLoadDropship() {
-        new megameklab.com.ui.Dropship.MainUI(false);
+        new megameklab.com.ui.aerospace.DropshipMainUI(false);
         parentFrame.dispose();
     }
 
     private void jMenuLoadPrimitiveDropship() {
-        new megameklab.com.ui.Dropship.MainUI(true);
+        new megameklab.com.ui.aerospace.DropshipMainUI(true);
+        parentFrame.dispose();
+    }
+    
+    private void jMenuLoadAdvAero() {
+        new megameklab.com.ui.aerospace.AdvancedAeroUI(false);
+        parentFrame.dispose();
+    }
+
+    private void jMenuLoadPrimitiveJumpship() {
+        new megameklab.com.ui.aerospace.AdvancedAeroUI(true);
         parentFrame.dispose();
     }
 
@@ -1118,6 +1177,12 @@ public class MenuBarCreator extends JMenuBar implements ClipboardOwner {
             parentFrame.createNewUnit(Entity.ETYPE_DROPSHIP);
         } else if (en.hasETypeFlag(Entity.ETYPE_SMALL_CRAFT)) {
             parentFrame.createNewUnit(Entity.ETYPE_SMALL_CRAFT, ((Aero)en).isPrimitive());
+        } else if (en.hasETypeFlag(Entity.ETYPE_SPACE_STATION)) {
+            parentFrame.createNewUnit(Entity.ETYPE_SPACE_STATION);
+        } else if (en.hasETypeFlag(Entity.ETYPE_WARSHIP)) {
+            parentFrame.createNewUnit(Entity.ETYPE_WARSHIP, ((Aero)en).isPrimitive());
+        } else if (en.hasETypeFlag(Entity.ETYPE_JUMPSHIP)) {
+            parentFrame.createNewUnit(Entity.ETYPE_JUMPSHIP);
         } else if (parentFrame.getEntity() instanceof Aero) {
             parentFrame.createNewUnit(Entity.ETYPE_AERO, ((Aero)en).isPrimitive());
         } else if (parentFrame.getEntity() instanceof BattleArmor) {
@@ -1330,10 +1395,11 @@ public class MenuBarCreator extends JMenuBar implements ClipboardOwner {
         if (newUnit.getEntityType() != parentFrame.getEntity().getEntityType()) {
             MegaMekLabMainUI newUI = null;
             if (newUnit.hasETypeFlag(Entity.ETYPE_SMALL_CRAFT)) {
-                newUI = new megameklab.com.ui.Dropship.MainUI(((Aero)newUnit).isPrimitive());
+                newUI = new megameklab.com.ui.aerospace.DropshipMainUI(((Aero)newUnit).isPrimitive());
+            } else if (newUnit.hasETypeFlag(Entity.ETYPE_JUMPSHIP)) {
+                newUI = new megameklab.com.ui.aerospace.AdvancedAeroUI(((Aero)newUnit).isPrimitive());
             } else if (newUnit.hasETypeFlag(Entity.ETYPE_AERO)
-                    && !(newUnit.hasETypeFlag(Entity.ETYPE_JUMPSHIP)
-                    || newUnit.hasETypeFlag(Entity.ETYPE_FIXED_WING_SUPPORT))) {
+                    && !newUnit.hasETypeFlag(Entity.ETYPE_FIXED_WING_SUPPORT)) {
                 newUI = new megameklab.com.ui.Aero.MainUI(((Aero)newUnit).isPrimitive());
             } else if (newUnit.hasETypeFlag(Entity.ETYPE_BATTLEARMOR)) {
                 newUI = new megameklab.com.ui.BattleArmor.MainUI();
@@ -1445,10 +1511,11 @@ public class MenuBarCreator extends JMenuBar implements ClipboardOwner {
             if (tempEntity.getEntityType() != parentFrame.getEntity().getEntityType()) {
                 MegaMekLabMainUI newUI = null;
                 if (tempEntity.hasETypeFlag(Entity.ETYPE_SMALL_CRAFT)) {
-                    newUI = new megameklab.com.ui.Dropship.MainUI(((Aero)tempEntity).isPrimitive());
+                    newUI = new megameklab.com.ui.aerospace.DropshipMainUI(((Aero)tempEntity).isPrimitive());
+                } else if (tempEntity.hasETypeFlag(Entity.ETYPE_JUMPSHIP)) {
+                    newUI = new megameklab.com.ui.aerospace.AdvancedAeroUI(((Aero)tempEntity).isPrimitive());
                 } else if ((tempEntity instanceof Aero)
-                        && !((tempEntity instanceof Jumpship)
-                        || (tempEntity instanceof FixedWingSupport))) {
+                        && !(tempEntity instanceof FixedWingSupport)) {
                     newUI = new megameklab.com.ui.Aero.MainUI(((Aero)tempEntity).isPrimitive());
                 } else if (tempEntity instanceof BattleArmor) {
                     newUI = new megameklab.com.ui.BattleArmor.MainUI();

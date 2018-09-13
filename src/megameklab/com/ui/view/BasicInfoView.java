@@ -199,11 +199,11 @@ public class BasicInfoView extends BuildView implements ITechManager, ActionList
     public void setFromEntity(Entity en) {
         boolean useTP = CConfig.getBooleanParam(CConfig.TECH_PROGRESSION);
         baseTA = en.getConstructionTechAdvancement();
-        txtYear.setMinimum(baseTA.getIntroductionDate());
+        txtYear.setMinimum(Math.max(baseTA.getIntroductionDate(), ITechnology.DATE_PS));
         refreshTechBase();
         setChassis(en.getChassis());
         setModel(en.getModel());
-        setYear(en.getYear());
+        setYear(Math.max(en.getYear(), txtYear.getMinimum()));
         setSource(en.getSource());
         cbTechBase.removeActionListener(this);
         setTechBase(en.isClan(), en.isMixedTech());
@@ -424,8 +424,6 @@ public class BasicInfoView extends BuildView implements ITechManager, ActionList
             } finally {
                 setYear(prevYear);
             }
-        } else if (e.getSource() == txtYear) {
-            listeners.forEach(l -> l.updateTechLevel());
         } else if (e.getSource() == txtSource) {
             listeners.forEach(l -> l.sourceChanged(getSource()));
         } else if (e.getSource() == txtManualBV) {
