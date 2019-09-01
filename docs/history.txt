@@ -1,5 +1,22 @@
 VERSION HISTORY:
 ----------------
+v0.45.2-SNAPSHOT
++ Switched build system from ant to gradle.
++ Bug: Aerospace transport tab does not refresh when tech base/year/level changes.
++ Issue #195: Multiple Items of One Ammo Type Don't Add to Available Tonnage for Large Craft
++ Issue #198: Nova CEWS & heat sinks on vehicles
++ Issue #203: Inner Sphere Endo Steel is unavailable to early clan mechs
++ Issue #194: Large Aerospace Unit Tonnage Doesn't Update at Bottom of Screen
++ Issue #206: Mass Driver Ammo doesn't use up weight
++ Issue #208: MMLs don't seem to need gunners
++ Issue #207: Warship Crew Accommodation Officer Count/Quarters
++ PR #209: System-wide equipment [general location for non-weapon equipment for aerospace units and
+           ammo in fighters]
++ Issue #205: Blue Shield Particle Field Dampener (BSPFD) can't be dragged into ASF slots
++ Issue #210: Superheavy printing issue: Armor distribution wrong?
++ Issue #211: Warship Cost Breakdown shows BV calculation
++ Issue #186: Weapons & Equipment Inventory table content linespacing
+
 v0.45.1 (2018-09-03 2300 UTC)
 + Issue #178: Equipment Table getting stuck on one equipment type.
 + Issue #181: Cannot assign silver bullet gauss ammo to dropship
@@ -49,7 +66,7 @@ v0.43.7-RC1 (2018-01-21 22:00 UTC)
 + Issue #126: LAM split crit weapons erroneous warning
 + Issue #127: Combat Vehicle Internal Structure Calculation
 + Added "Show Unavailable" checkbox to equipment tab that will show equipment that is filtered out so user
-  can check intro dates and tech levels. 
+  can check intro dates and tech levels.
 + Issue #129: Fusion Powered vehicle has no shielding
 + PR #130: Embedded fonts for mech record sheet printing.
 + Issue #132: Aero heat sinks added as pod-mounted on non-omnifighter.
@@ -87,7 +104,7 @@ v0.43.5 (2017-12-17 11:00 UTC)
   o Unit-specific sheets for LAMs and QuadVees
   o Move layout info into the svg files to allow for custom record sheets without need to alter code.
   o Show quirks and SPAs on record sheet (SPAs require printing from a mul file which contains the pilot data).
-+ Issue #22: Can't print Superheavy 'mechs  
++ Issue #22: Can't print Superheavy 'mechs
 + Issue #106: LAM landing gear not placed correctly with compact engine or gyro.
 + Issue #117: VTOL Jet Booster not showing
 + Issue #116: Vehicle Grenade Launcher not being applied to mechs.
@@ -1331,4 +1348,3 @@ V 0.1.1 (06/09/2008)
 + Added new utility file UnitUtil.java
 + Added code to add TSM crits.
 + fixed bugs in adding and removing TSM crits.
-
