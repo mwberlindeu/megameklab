@@ -1,6 +1,7 @@
 VERSION HISTORY:
 ----------------
 0.48.1
++ PR #892: Account for missing actuators in shield pips
 
 0.48.0 (Stable) - (2021-03-05 1530 UTC)
 
