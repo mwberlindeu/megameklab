@@ -49,7 +49,7 @@ import megameklab.com.util.CConfig;
 import megameklab.com.util.UnitUtil;
 
 public class MegaMekLab {
-    public static final String VERSION = "0.48.0";
+    public static final String VERSION = "0.48.1-SNAPSHOT";
 
     private static MMLogger logger = null;
 
