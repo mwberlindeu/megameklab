@@ -5,10 +5,14 @@ plugins {
     id 'org.ajoberstar.grgit' version '2.3.0'
 }
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
+sourceCompatibility = 11
+targetCompatibility = 11
 group = 'org.megamek'
+<<<<<<< HEAD
 version = '0.45.2-SNAPSHOT'
+=======
+version = '0.49.6-SNAPSHOT'
+>>>>>>> origin/master
 
 sourceSets {
     main {
@@ -27,7 +31,7 @@ ext {
     // Work on MML or MHQ sometimes requires changes in MM as well. The maven publishing tasks use
     // these properties to append the branch name to the artifact id if the repo is not in the master
     // branch, making it available separately to the child project. 
-    mmlBranch = grgit.branch.current.name
+    mmlBranch = grgit.branch.current().name
     mmlBranchTag = mmlBranch.equals('master')? '' : '-' + mmlBranch
     
     // Allows setting a dependency on a different MM branch.
@@ -51,29 +55,51 @@ repositories {
     maven {
         url 'https://github.com/MegaMek/mavenrepo/raw/master'
     }
-    jcenter()
+    mavenCentral()
+    maven {
+        url 'https://jitpack.io'
+    }
 }
 
 configurations {
     jarbundler
+    all*.exclude group: 'xml-apis', module: 'xml-apis'
 }
 
 dependencies {
     implementation "org.megamek:megamek${mmBranchTag}:${version}"
+<<<<<<< HEAD
     
     implementation 'log4j:log4j:1.2.17'
     implementation 'org.apache.xmlgraphics:batik-dom:1.9.1'
     implementation ('org.apache.xmlgraphics:batik-bridge:1.9.1') {
+=======
+
+    implementation 'org.apache.logging.log4j:log4j-core:2.16.0'
+    implementation 'org.apache.xmlgraphics:batik-dom:1.14'
+    implementation 'org.apache.xmlgraphics:batik-codec:1.14'
+    implementation 'org.apache.xmlgraphics:batik-rasterizer:1.14'
+    implementation ('org.apache.xmlgraphics:batik-bridge:1.14') {
+>>>>>>> origin/master
         // We don't need the python and javascript engine taking up space
         exclude group: 'org.python', module: 'jython'
         exclude group: 'org.mozilla', module: 'rhino'
     }
+<<<<<<< HEAD
     implementation 'org.apache.xmlgraphics:batik-svggen:1.9.1'
     // We have been using a modified version of svgSalamander, which we'll keep around until
     // the conversion to batik is complete.
     implementation files('lib/svgSalamander.jar')
 
     jarbundler 'com.ultramixer.jarbundler:jarbundler-core:3.3.0'
+=======
+    implementation 'org.apache.xmlgraphics:batik-svggen:1.14'
+    implementation ('org.apache.xmlgraphics:fop:2.6') {
+        // We don't need this proprietary module
+        exclude group: 'com.sun.media', module: 'jai-codec'
+    }
+    implementation 'org.apache.pdfbox:pdfbox:2.0.24'
+>>>>>>> origin/master
 }
 
 mainClassName = 'megameklab.com.MegaMekLab'
@@ -93,8 +119,6 @@ ext {
     mavenPublishDir = "${buildDir}/mavenrepo"
     scriptsDir = "${projectDir}/scripts"
     scriptTemplate = "${scriptsDir}/startScriptTemplate.txt"
-    osxApplicationStub = "${scriptsDir}/universalJavaApplicationStub"
-    osxBundleDir = "${buildDir}/osxBundle"
 }
 
 task setMMDir {
@@ -109,12 +133,43 @@ file. Defaulting to ${mmDir}"""
     }
 }
 
-jar {
-    archiveName = "${rootProject.name}.${extension}"
+<<<<<<< HEAD
+=======
+task compileMM (type: GradleBuild) {
+    description = 'Compiles the MM directory for packaging in a Jar'
+    
+    buildFile = "${mmDir}/build.gradle"
+    buildName = "mml-compile-mm"
+    dir = "${mmDir}"
+    tasks = [ 'compileTestJava' ]
+}
+
+task mmJar (type: Jar, dependsOn: compileMM) {
+    archiveFileName = "MegaMek.jar"
+    from "${mmDir}/megamek/build/classes/java/main"
+    from "${mmDir}/megamek/build/resources/main"
     manifest {
         attributes "Main-Class": mainClassName
+        attributes 'Class-Path' : (project.sourceSets.main.runtimeClasspath.files
+            .findAll { it.name.endsWith(".jar") }.collect { "${lib}/${it.name}" }.join(' '))
+    }
+    inputs.dir "${mmDir}/megamek/build/classes/java/main"
+    inputs.dir "${mmDir}/megamek/build/resources/main"
+    outputs.file "${buildDir}/libs/${archiveFileName.get()}"
+}
+
+>>>>>>> origin/master
+jar {
+    archiveFileName = "${rootProject.name}.${archiveExtension.get()}"
+    manifest {
+        attributes "Main-Class": mainClassName
+<<<<<<< HEAD
         attributes 'Class-Path' : project.sourceSets.main.runtimeClasspath.files
             .findAll { it.name.endsWith(".jar") }.collect { "${lib}/${it.name}" }.join(' ')
+=======
+        attributes 'Class-Path' : "${lib}/${mmJar.archiveFileName.get()} " + (project.sourceSets.main.runtimeClasspath.files
+            .findAll { it.name.endsWith(".jar") }.collect { "${lib}/${it.name}" }.join(' '))
+>>>>>>> origin/master
     }
 }
 
@@ -142,8 +197,8 @@ task unitFilesZip (dependsOn: setMMDir) {
     file("${mmDir}/megamek/${unitFiles}").eachDir {subDir ->
         dependsOn tasks.create("${name}${subDir.name}", Zip) {
             from subDir
-            archiveName "${subDir.name}.zip"
-            destinationDir file("${fileStagingDir}/${unitFiles}")
+            archiveFileName = "${subDir.name}.zip"
+            destinationDirectory = file("${fileStagingDir}/${unitFiles}")
         }
     }
     inputs.dir "${mmDir}/${unitFiles}"
@@ -183,42 +238,10 @@ task createStartScripts (type: CreateStartScripts) {
     }
 }
 
-task createOSXBundle (dependsOn: jar) {
-    ext.appName = 'MegaMekLab'
-    // The jar directory is hard coded into jarbundler and has no public accessor
-    ext.jarSubdir = "${appName}.app/Contents/Resources/Java"
-    doLast {
-        mkdir osxBundleDir
-        ant.taskdef(name: 'jarbundler',
-            classname: 'com.ultramixer.jarbundler.JarBundler',
-            classpath: configurations.jarbundler.asPath)
-        ant.jarbundler (
-                name: ext.appName,
-                shortName: 'MegaMekLab',
-                build: rootProject.version,
-                version: rootProject.version.replace('-SNAPSHOT', ''),
-                bundleid: 'org.megamek.MegaMekLab',
-                mainClass: project.mainClassName,
-                stubfile: osxApplicationStub,
-                dir: osxBundleDir,
-                jar: "${jar.destinationDir}/${jar.archiveName}",
-                jvmversion: '1.8+',
-                icon: "${projectDir}/${data}/images/misc/megameklab.icns",
-                useJavaXKey: 'true',
-                workingdirectory: '$APP_PACKAGE/../',
-                extraclasspath: files(project.sourceSets.main.runtimeClasspath.files)
-                    .filter { it.name.endsWith(".jar") }.collect { '$JAVAROOT/lib/' + it.name}.join(","),
-                vmoptions: '-Xmx1024m') {
-            javaproperty (name: 'apple.awt.brushMetal', value: 'true')
-            javaproperty (name: 'apple.laf.useScreenMenuBar', value: 'true')
-        }
-    }
-}
-
 distributions {
     // Creates tasks which package distribution with MM jar and startup script in root directory
     unix {
-        baseName = rootProject.name.toLowerCase()
+        distributionBaseName = rootProject.name.toLowerCase()
         contents {
             from (fileStagingDir) {
                 exclude '**/history.txt'
@@ -236,7 +259,7 @@ distributions {
     }
     // Creates tasks which package distribution with MM jar wrapped in Windows executable
     windows {
-        baseName = 'megameklab-windows'
+        distributionBaseName = 'megameklab-windows'
         contents {
             from ("${buildDir}/launch4j") {
                 include '*.exe'
@@ -252,6 +275,7 @@ distributions {
             duplicatesStrategy = 'exclude'
         }
     }
+<<<<<<< HEAD
     mac {
         baseName = 'megameklab-mac'
         contents {
@@ -263,13 +287,16 @@ distributions {
             }
         }
     }
+=======
+>>>>>>> origin/master
 }
 
 createExe {
-    description = 'Create Windows executable that wraps MM jar'
+    description = 'Create Windows executable that wraps MML jar'
     mainClassName = project.mainClassName
     icon = "${projectDir}/data/images/misc/megameklab.ico"
     def inifile = outfile.replace('.exe', '.l4j.ini')
+    jar = "${project.tasks.getByName("jar").archiveFile.get()}"
     inputs.file  jar
     outputs.file "${buildDir}/launch4j/${outfile}"
     outputs.file "${buildDir}/launch4j/${inifile}"
@@ -290,16 +317,8 @@ unixDistTar {
     description = 'Creates *nix distribution packaged as a tar ball'
     dependsOn stageFiles
     dependsOn startScripts
-    extension = 'tar.gz'
+    archiveExtension = 'tar.gz'
     compression = Compression.GZIP
-}
-
-macDistTar {
-    description = 'Creates mac OSX distribution'
-    dependsOn stageFiles
-    dependsOn createOSXBundle
-    extension = 'tar.bz2'
-    compression = Compression.BZIP2
 }
 
 // The repository can only be cloned into an empty directory so we need to delete anything left over
@@ -333,8 +352,8 @@ task sourceZip (type: Zip) {
         exclude "**/build/**"
         exclude "**/.*"
     }
-    archiveName "${rootProject.name.toLowerCase()}-${version}-source.zip"
-    destinationDir file(distributionDir)
+    archiveFileName = "${rootProject.name.toLowerCase()}-${archiveVersion}-source.zip"
+    destinationDirectory = file(distributionDir)
 }
 
 task sourceTar (type: Tar) {
@@ -343,9 +362,9 @@ task sourceTar (type: Tar) {
         exclude "**/build/**"
         exclude "**/.*"
     }
-    archiveName "${rootProject.name.toLowerCase()}-${version}-source.tar.gz"
+    archiveFileName = "${rootProject.name.toLowerCase()}-${archiveVersion}-source.tar.gz"
     compression = Compression.GZIP
-    destinationDir file(distributionDir)
+    destinationDirectory = file(distributionDir)
 }
 
 // The distribution plugin adds the distro packages to the assemble task, which causes the build task
@@ -358,9 +377,9 @@ task assemble(overwrite: true) {
 task assembleDist(overwrite: true) {
     description = 'Build unix, Windows, and source packages'
     group = 'distribution'
+    dependsOn test
     dependsOn unixDistTar
     dependsOn windowsDistZip
-    dependsOn macDistTar
 }
 
 task buildFromRepo (type: GradleBuild) {
@@ -370,6 +389,7 @@ task buildFromRepo (type: GradleBuild) {
     dependsOn cloneMMRepo
     
     buildFile = "${repoDir}/build.gradle"
+    buildName = "mml-repo-mm"
     dir = "${repoDir}"
     tasks = [ 'assembleDist' ]
 }
@@ -386,13 +406,13 @@ task release (type: Copy) {
 task sourcesJar(type: Jar) {
     description = 'Creates a source archive for publication to a maven repository'
     from sourceSets.main.allJava
-    classifier = 'sources'
+    archiveClassifier = 'sources'
 }
 
 task javadocJar(type: Jar) {
     description = 'Creates a documentation archive for publication to a maven repository'
     from javadoc
-    classifier = 'javadoc'
+    archiveClassifier = 'javadoc'
 }
 
 publishing {

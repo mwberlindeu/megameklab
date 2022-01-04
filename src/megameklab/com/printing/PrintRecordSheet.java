@@ -13,68 +13,81 @@
  */
 package megameklab.com.printing;
 
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.geom.Rectangle2D;
-import java.awt.image.RenderedImage;
-import java.awt.print.PageFormat;
-import java.awt.print.Printable;
-import java.awt.print.PrinterException;
-import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URLConnection;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-
-import javax.imageio.ImageIO;
-
+import megamek.common.EquipmentType;
+import megamek.common.annotations.Nullable;
+import megameklab.com.printing.reference.ReferenceTable;
+import megameklab.com.util.CConfig;
 import org.apache.batik.anim.dom.SVGDOMImplementation;
+import org.apache.batik.anim.dom.SVGLocatableSupport;
 import org.apache.batik.bridge.BridgeContext;
 import org.apache.batik.bridge.GVTBuilder;
 import org.apache.batik.bridge.UserAgentAdapter;
 import org.apache.batik.dom.util.SAXDocumentFactory;
 import org.apache.batik.gvt.GraphicsNode;
+import org.apache.batik.svggen.SVGGeneratorContext;
 import org.apache.batik.svggen.SVGGraphics2D;
+import org.apache.batik.transcoder.TranscoderException;
+import org.apache.batik.transcoder.TranscoderInput;
+import org.apache.batik.transcoder.TranscoderOutput;
 import org.apache.batik.util.SVGConstants;
 import org.apache.batik.util.XMLResourceDescriptor;
+import org.apache.fop.configuration.Configuration;
+import org.apache.fop.configuration.ConfigurationException;
+import org.apache.fop.configuration.DefaultConfigurationBuilder;
+import org.apache.fop.svg.PDFTranscoder;
+import org.apache.logging.log4j.LogManager;
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.svg.SVGDocument;
-import org.w3c.dom.svg.SVGElement;
 import org.w3c.dom.svg.SVGRectElement;
+import org.w3c.dom.xpath.XPathEvaluator;
+import org.w3c.dom.xpath.XPathResult;
+import org.xml.sax.SAXException;
 
-import megamek.common.EquipmentType;
-import megamek.common.logging.LogLevel;
-import megameklab.com.MegaMekLab;
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.geom.Rectangle2D;
+import java.awt.image.RenderedImage;
+import java.awt.print.PageFormat;
+import java.awt.print.Printable;
+import java.io.*;
+import java.net.URLConnection;
+import java.time.LocalDate;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * Base class for rendering record sheets. This is mostly a collection of utility methods.
  * 
  * @author Neoancient
- *
  */
+<<<<<<< HEAD
 public abstract class PrintRecordSheet implements Printable {
     
     final static float DEFAULT_PIP_SIZE  = 0.38f;
     final static float FONT_SIZE_MEDIUM  = 6.76f;
     final static float FONT_SIZE_SMALL   = 6.2f;
     final static float FONT_SIZE_VSMALL  = 5.8f;
+=======
+public abstract class PrintRecordSheet implements Printable, IdConstants {
+
+    public final static String DEFAULT_TYPEFACE = "Eurostile";
+    public final static float DEFAULT_PIP_SIZE  = 0.38f;
+    public final static float FONT_SIZE_LARGE   = 7.2f;
+    public final static float FONT_SIZE_MEDIUM  = 6.76f;
+    public final static float FONT_SIZE_SMALL   = 6.2f;
+    public final static float FONT_SIZE_VSMALL  = 5.8f;
+    public final static String FILL_BLACK = "#231f20";
+    public final static String FILL_GREY = "#3f3f3f";
+    public final static String FILL_SHADOW = "#c8c7c7";
+    public final static String FILL_WHITE = "#ffffff";
+    /** Scale factor for record sheets with reference tables */
+    public final static double TABLE_RATIO = 0.8;
+>>>>>>> origin/master
     
     enum PipType {
         CIRCLE, DIAMOND;
@@ -92,58 +105,216 @@ public abstract class PrintRecordSheet implements Printable {
     private final int firstPage;
     private Document svgDocument;
     private SVGGraphics2D svgGenerator;
+    // Used to update progress bar
+    private Consumer<Integer> callback;
     
     private Font normalFont = null;
     private Font boldFont = null;
+    private String typeface = null;
     
+<<<<<<< HEAD
     protected PrintRecordSheet(int firstPage) {
+=======
+    /**
+     * Creates an SVG object for the record sheet
+     * 
+     * @param firstPage The print job page number for this sheet
+     * @param options   Overrides the global options for which elements are printed
+     */
+    protected PrintRecordSheet(int firstPage, RecordSheetOptions options) {
+>>>>>>> origin/master
         this.firstPage = firstPage;
     }
     
-    protected final Document getSVGDocument() {
+    public final Document getSVGDocument() {
         return svgDocument;
     }
+
+    /**
+     * Provides a callback function that can be used to provide updates on printing progress.
+     * As each page is rendered, the callback is invoked with the page number.
+     *
+     * @param callback The function to call with the current page number.
+     */
+    public void setCallback(Consumer<Integer> callback) {
+        this.callback = callback;
+    }
     
+    /**
+     * @return The name of the typeface to use when printing record sheets.
+     */
+    protected final String getTypeface() {
+        if (null == typeface) {
+            assignFonts();
+        }
+        return typeface;
+    }
+
+    /**
+     * Used for measuring font metrics of a normal weight font
+     * 
+     * @param size The font size
+     * @return     A font derived from the default
+     */
     protected final Font getNormalFont(float size) {
         if (null == normalFont) {
-            loadFonts();
+            assignFonts();
         }
         return normalFont.deriveFont(size);
     }
     
+    /**
+     * Used for measuring font metrics of a bold weight font
+     * 
+     * @param size The font size
+     * @return     A font derived from the default bold
+     */
     protected final Font getBoldFont(float size) {
         if (null == boldFont) {
-            loadFonts();
+            assignFonts();
         }
         return boldFont.deriveFont(size);
     }
     
-    private void loadFonts() {
-        final String METHOD_NAME = "loadFonts()";
-        String fName = "data/fonts/Eurosti.TTF";
-        try {
-            File fontFile = new File(fName);
-            InputStream is = new FileInputStream(fontFile);
-            normalFont = Font.createFont(Font.TRUETYPE_FONT, is);
-            is.close();
-        } catch (Exception ex) {
-            MegaMekLab.getLogger().log(PrintRecordSheet.class, METHOD_NAME, LogLevel.ERROR,
-                            fName + " not loaded.  Using Arial font.", ex);
-            normalFont = new Font("Arial", Font.PLAIN, 8);
-        }
-        fName = "data/fonts/Eurostib.TTF";
-        try {
-            File fontFile = new File(fName);
-            InputStream is = new FileInputStream(fontFile);
-            boldFont = Font.createFont(Font.TRUETYPE_FONT, is);
-            is.close();
-        } catch (Exception ex) {
-            MegaMekLab.getLogger().log(PrintRecordSheet.class, METHOD_NAME, LogLevel.ERROR,
-                            fName + " not loaded.  Using Arial font.", ex);
-            normalFont = new Font("Arial", Font.BOLD, 8);
+    private void assignFonts() {
+        typeface = CConfig.getParam(CConfig.RS_FONT, DEFAULT_TYPEFACE);
+        Font font = Font.decode(typeface);
+        normalFont = font.deriveFont(Font.PLAIN, 8);
+        boldFont = font.deriveFont(Font.BOLD, 8);
+    }
+    
+    /**
+     * Finds all text elements in the SVG document and replaces the font-family attribute.
+     * 
+     * @param doc The document to perform replacement in.
+     */
+    private void subFonts(SVGDocument doc) {
+        final XPathResult res = (XPathResult) ((XPathEvaluator) doc).evaluate(".//*[local-name()=\"text\"]",
+                doc.getRootElement(), null, XPathResult.ORDERED_NODE_ITERATOR_TYPE, null);
+        for (Node node = res.iterateNext(); node != null; node = res.iterateNext()) {
+            if (node instanceof Element) {
+                final Element elem = (Element) node;
+                // First we want to make sure it's not set in the style attribute, which could override
+                // the change
+                if (elem.hasAttributeNS(null, SVGConstants.SVG_STYLE_ATTRIBUTE)) {
+                    elem.setAttributeNS(null, SVGConstants.SVG_STYLE_ATTRIBUTE,
+                            elem.getAttributeNS(null, SVGConstants.SVG_STYLE_ATTRIBUTE)
+                            .replaceAll("font-family:.*?;", ""));
+                }
+                elem.setAttributeNS(null, SVGConstants.SVG_FONT_FAMILY_ATTRIBUTE, getTypeface());
+            }
         }
     }
 
+    private void subColorElements() {
+        Element element = svgDocument.getElementById(RS_TEMPLATE);
+        if (element != null) {
+            String style = element.getAttributeNS(null, SVGConstants.SVG_STYLE_ATTRIBUTE);
+            if (style != null) {
+                for (String field : style.split(";")) {
+                    if (field.startsWith(MML_COLOR_ELEMENTS + ":")) {
+                        String[] ids = field.substring(field.indexOf(":") + 1).split(",");
+                        for (String id : ids) {
+                            hideElement(id + "Color", !options.useColor());
+                            hideElement(id + "BW", options.useColor());
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Creates a {@link Document} from an svg image file
+     *
+     * @param filename The name of the SVG file
+     * @return         The document object
+     */
+    static Document loadSVG(String dirName, String filename) {
+        File f = new File(dirName, filename);
+        Document svgDocument = null;
+        try {
+            InputStream is = new FileInputStream(f);
+            DOMImplementation impl = SVGDOMImplementation.getDOMImplementation();
+            final String parser = XMLResourceDescriptor.getXMLParserClassName();
+            SAXDocumentFactory df = new SAXDocumentFactory(impl, parser);
+            svgDocument = df.createDocument(f.toURI().toASCIIString(), is);
+        } catch (Exception e) {
+            LogManager.getLogger().error(e);
+        }
+        if (null == svgDocument) {
+            LogManager.getLogger().error("Failed to open SVG file! Path: data/images/recordsheets/" + filename);
+        }
+        return svgDocument;
+    }
+
+    /**
+     * Checks the <code>style</code> attribute of an {@link Element} for a given property and returns its
+     * value, or null if the property does not exist.
+     *
+     * @param element  The element to check the property of
+     * @param property The name of the property
+     * @return         The value of the property, or <code>null</code> if the property does not exist.
+     */
+    static @Nullable
+    String parseStyle(Element element, String property) {
+        final String style = element.getAttributeNS(null, SVGConstants.SVG_STYLE_ATTRIBUTE);
+        if (null != style) {
+            for (String field : style.split(";")) {
+                if (field.startsWith(property + ":")) {
+                    return field.substring(field.indexOf(":") + 1);
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Creates the base template document. This is usually loaded from a file, but
+     * some composite record sheets override this to create a document in memory
+     * which is then filled in using the individual record sheet templates.
+     *
+     * @param pageIndex   The index of this page in the print job
+     * @param pageFormat  The page format seleted by the user
+     * @return            An SVG document for one page of the print job
+     */
+    @Nullable Document loadTemplate(int pageIndex, PageFormat pageFormat) {
+        return loadSVG(getSVGDirectoryName(),
+                getSVGFileName(pageIndex - firstPage));
+    }
+
+    void createDocument(int pageIndex, PageFormat pageFormat, boolean addMargin) {
+        svgDocument = loadTemplate(pageIndex, pageFormat);
+        if (null != svgDocument) {
+            subFonts((SVGDocument) svgDocument);
+            subColorElements();
+            SVGGeneratorContext context = SVGGeneratorContext.createDefault(svgDocument);
+            svgGenerator = new SVGGraphics2D(context, false);
+            double ratio = Math.min(pageFormat.getImageableWidth() / (options.getPaperSize().pxWidth - 36),
+                    pageFormat.getPaper().getImageableHeight() / (options.getPaperSize().pxHeight - 36));
+            if ((pageIndex == firstPage) && includeReferenceCharts()) {
+                ratio *= TABLE_RATIO;
+            }
+            Element svgRoot = svgDocument.getDocumentElement();
+            svgRoot.setAttributeNS(null, SVGConstants.SVG_WIDTH_ATTRIBUTE, String.valueOf(pageFormat.getWidth()));
+            svgRoot.setAttributeNS(null, SVGConstants.SVG_HEIGHT_ATTRIBUTE, String.valueOf(pageFormat.getHeight()));
+            Element g = svgDocument.getElementById(RS_TEMPLATE);
+            if (g != null) {
+                if (addMargin) {
+                    g.setAttributeNS(null, SVGConstants.SVG_TRANSFORM_ATTRIBUTE,
+                            String.format("%s(%f 0 0 %f %f %f)", SVGConstants.SVG_MATRIX_VALUE,
+                                    ratio, ratio, pageFormat.getImageableX(), pageFormat.getImageableY()));
+                } else {
+                    g.setAttributeNS(null, SVGConstants.SVG_TRANSFORM_ATTRIBUTE,
+                            String.format("%s(%f %f)", SVGConstants.SVG_SCALE_ATTRIBUTE,
+                                    ratio, ratio));
+                }
+            }
+            processImage(pageIndex - firstPage, pageFormat);
+        }
+    }
+
+<<<<<<< HEAD
     public int print(Graphics graphics, PageFormat pageFormat, int pageIndex) throws PrinterException {
         final String METHOD_NAME = "print(Graphics,PageFormat,int)";
         
@@ -168,9 +339,50 @@ public abstract class PrintRecordSheet implements Printable {
                 printImage(g2d, pageFormat, pageIndex - firstPage);
                 GraphicsNode node = build();
                 node.paint(g2d);
+=======
+    @Override
+    public int print(Graphics graphics, PageFormat pageFormat, int pageIndex) {
+        Graphics2D g2d = (Graphics2D) graphics;
+        if (null != g2d) {
+            createDocument(pageIndex, pageFormat, true);
+            GraphicsNode node = build();
+            node.paint(g2d);
+            /* Testing code that outputs the generated svg
+            try {
+                javax.xml.transform.Transformer transformer = javax.xml.transform.TransformerFactory.newInstance().newTransformer();
+                javax.xml.transform.Result output = new javax.xml.transform.stream.StreamResult(new File("out.svg"));
+                javax.xml.transform.Source input = new javax.xml.transform.dom.DOMSource(svgDocument);
+                transformer.transform(input, output);
+            } catch (Exception ex) {
+                LogManager.getLogger.error(ex);
+>>>>>>> origin/master
             }
+            */
+        }
+        if (callback != null) {
+            callback.accept(pageIndex);
         }
         return Printable.PAGE_EXISTS;
+    }
+
+    public InputStream exportPDF(int pageNumber, PageFormat pageFormat) throws TranscoderException, SAXException, IOException, ConfigurationException {
+        createDocument(pageNumber + firstPage, pageFormat, true);
+        DefaultConfigurationBuilder cfgBuilder = new DefaultConfigurationBuilder();
+        Configuration cfg = cfgBuilder.build(getClass().getResourceAsStream("fop-config.xml"));
+        PDFTranscoder transcoder = new PDFTranscoder();
+        transcoder.configure(cfg);
+        transcoder.addTranscodingHint(PDFTranscoder.KEY_AUTO_FONTS, false);
+        TranscoderInput input = new TranscoderInput(getSVGDocument());
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        TranscoderOutput transOutput = new TranscoderOutput(output);
+        // The default for the transcoder is 96 dpi, but the source document is 72 dpi.
+        transcoder.addTranscodingHint(PDFTranscoder.KEY_PIXEL_UNIT_TO_MILLIMETER, 0.352778f);
+        transcoder.transcode(input, transOutput);
+
+        if (callback != null) {
+            callback.accept(pageNumber + firstPage);
+        }
+        return new ByteArrayInputStream(output.toByteArray());
     }
     
     protected GraphicsNode build() {
@@ -180,10 +392,9 @@ public abstract class PrintRecordSheet implements Printable {
             // If an image can't be rendered we'll log it and return an empty document in its place
             // rather than throwing an exception.
             public SVGDocument getBrokenLinkDocument(Element e, String url, String message) {
-                MegaMekLab.getLogger().log(PrintRecordSheet.class, "build()",
-                        LogLevel.WARNING, "Cannot render image: " + message);
+                LogManager.getLogger().warn("Cannot render image: " + message);
                 DOMImplementation impl = SVGDOMImplementation.getDOMImplementation();
-                SVGDocument doc = (SVGDocument) impl.createDocument(svgNS, "svg", null);
+                SVGDocument doc = (SVGDocument) impl.createDocument(svgNS, SVGConstants.SVG_SVG_TAG, null);
                 Element text = doc.createElementNS(svgNS, SVGConstants.SVG_TEXT_TAG);
                 text.setTextContent("?");
                 doc.getDocumentElement().appendChild(text);
@@ -204,14 +415,18 @@ public abstract class PrintRecordSheet implements Printable {
     /**
      * Renders the sheet to the Graphics object.
      * 
-     * @param graphics   The graphics object passed by {@link Printable#print(Graphics, PageFormat, int) print}
-     * @param pageFormat The page format passed by {@link Printable#print(Graphics, PageFormat, int) print}
      * @param pageNum    Indicates which page of multi-page sheets to print. The first page is 0.
-     * 
-     * @throws PrinterException
      */
-    protected abstract void printImage(Graphics2D g2d, PageFormat pageFormat, int pageNum)
-            throws PrinterException;
+    protected void processImage(int pageNum, PageFormat pageFormat) {
+        Element element = getSVGDocument().getElementById(COPYRIGHT);
+        if (null != element) {
+            element.setTextContent(String.format(element.getTextContent(), LocalDate.now().getYear()));
+        }
+    }
+
+    String getSVGDirectoryName() {
+        return "data/images/recordsheets/" + options.getPaperSize().dirName;
+    }
 
     protected abstract String getSVGFileName();
     
@@ -219,6 +434,13 @@ public abstract class PrintRecordSheet implements Printable {
      * @return The title to use for the record sheet
      */
     protected abstract String getRecordSheetTitle();
+
+    /**
+     * Used to build an outline of a PDF document
+     *
+     * @return Names of outline entries
+     */
+    public abstract List<String> getBookmarkNames();
     
     protected void setTextField(String id, String text) {
         setTextField(id, text, false);
@@ -243,12 +465,33 @@ public abstract class PrintRecordSheet implements Printable {
                     hideElement(element, false);
                 }
                 element.setTextContent(text);
+                /* In cases where the text may be too long for the space we will need to add the
+                 * textLength attribute to fit it into the space. We only want to set the textLength
+                 * when the text is too long so we don't stretch shorter text to fit. So we abuse the
+                 * style attribute to sneak in metadata about the max width of the space.
+                 */
+                String fieldWidth = parseStyle(element, MML_FIELD_WIDTH);
+                if (null != fieldWidth) {
+                    try {
+                        double width = Double.parseDouble(fieldWidth);
+                        build();
+                        double textWidth = SVGLocatableSupport.getBBox(element).getWidth();
+                        if (textWidth > width) {
+                            element.setAttributeNS(null, SVGConstants.SVG_TEXT_LENGTH_ATTRIBUTE,
+                                    String.valueOf(width));
+                            element.setAttributeNS(null, SVGConstants.SVG_LENGTH_ADJUST_ATTRIBUTE,
+                                    SVGConstants.SVG_SPACING_AND_GLYPHS_VALUE);
+                        }
+                    } catch (NumberFormatException ex) {
+                        LogManager.getLogger().warn("Could not parse fieldWidth: " + fieldWidth);
+                    }
+                }
             }
         }
     }
     
     /**
-     * Convenience method for creating a new SVG Text element and adding it to the parent.  The height of the text is
+     * Convenience method for creating a new SVG Text element and adding it to the parent.  The width of the text is
      * returned, to aid in layout.
      * 
      * @param parent    The SVG element to add the text element to.
@@ -258,10 +501,12 @@ public abstract class PrintRecordSheet implements Printable {
      * @param fontSize  Font size of the text.
      * @param anchor    Set the Text elements text-anchor.  Should be either start, middle, or end.
      * @param weight    The font weight, either normal or bold.
+     *
+     * @return          The width of the text in the current font size
      */
     protected double addTextElement(Element parent, double x, double y, String text,
             float fontSize, String anchor, String weight) {
-        return addTextElement(parent, x, y, text, fontSize, anchor, weight, "#000000");
+        return addTextElement(parent, x, y, text, fontSize, anchor, weight, FILL_BLACK);
     }
     
     /**
@@ -285,17 +530,73 @@ public abstract class PrintRecordSheet implements Printable {
         newText.setTextContent(text);
         newText.setAttributeNS(null, SVGConstants.SVG_X_ATTRIBUTE, String.valueOf(x));
         newText.setAttributeNS(null, SVGConstants.SVG_Y_ATTRIBUTE, String.valueOf(y));
-        newText.setAttributeNS(null, SVGConstants.SVG_FONT_FAMILY_ATTRIBUTE, "Eurostile");
+        newText.setAttributeNS(null, SVGConstants.SVG_FONT_FAMILY_ATTRIBUTE, getTypeface());
         newText.setAttributeNS(null, SVGConstants.SVG_FONT_SIZE_ATTRIBUTE, fontSize + "px");
         newText.setAttributeNS(null, SVGConstants.SVG_FONT_WEIGHT_ATTRIBUTE, weight);
         newText.setAttributeNS(null, SVGConstants.SVG_TEXT_ANCHOR_ATTRIBUTE, anchor);
         newText.setAttributeNS(null, SVGConstants.SVG_FILL_ATTRIBUTE, fill);
         parent.appendChild(newText);
         
-        return getTextLength(text, fontSize);
+        return weight.equals(SVGConstants.SVG_BOLD_VALUE) ?
+                getBoldTextLength(text, fontSize) : getTextLength(text, fontSize);
     }
     
     /**
+<<<<<<< HEAD
+=======
+     * Creates a new text element with black fill and adds it to the parent.
+     * If the text is wider than the available
+     * space, the text is compressed to fit.
+     * 
+     * @param parent    The SVG element to add the text element to.
+     * @param x         The X position of the new element.
+     * @param y         The Y position of the new element.
+     * @param width     The width of the space the text has to fit.
+     * @param text      The text to display.
+     * @param fontSize  Font size of the text.
+     * @param anchor    Set the Text elements text-anchor.  Should be either start, middle, or end.
+     * @param weight    The font weight, either normal or bold.
+     */
+    protected void addTextElementToFit(Element parent, double x, double y, double width,
+            String text, float fontSize, String anchor, String weight) {
+        addTextElementToFit(parent, x, y, width, text, fontSize, anchor, weight, FILL_BLACK);
+    }
+    
+    /**
+     * Creates a new text element and adds it to the parent. If the text is wider than the available
+     * space, the text is compressed to fit.
+     * 
+     * @param parent    The SVG element to add the text element to.
+     * @param x         The X position of the new element.
+     * @param y         The Y position of the new element.
+     * @param width     The width of the space the text has to fit.
+     * @param text      The text to display.
+     * @param fontSize  Font size of the text.
+     * @param anchor    Set the Text elements text-anchor.  Should be either start, middle, or end.
+     * @param weight    The font weight, either normal or bold.
+     * @param fill      The fill color for the text (e.g. foreground color)
+     */
+    protected void addTextElementToFit(Element parent, double x, double y, double width,
+            String text, float fontSize, String anchor, String weight, String fill) {
+        Element newText = svgDocument.createElementNS(svgNS, SVGConstants.SVG_TEXT_TAG);
+        newText.setTextContent(text);
+        newText.setAttributeNS(null, SVGConstants.SVG_X_ATTRIBUTE, String.valueOf(x));
+        newText.setAttributeNS(null, SVGConstants.SVG_Y_ATTRIBUTE, String.valueOf(y));
+        newText.setAttributeNS(null, SVGConstants.SVG_FONT_FAMILY_ATTRIBUTE, DEFAULT_TYPEFACE);
+        newText.setAttributeNS(null, SVGConstants.SVG_FONT_SIZE_ATTRIBUTE, fontSize + "px");
+        newText.setAttributeNS(null, SVGConstants.SVG_FONT_WEIGHT_ATTRIBUTE, weight);
+        newText.setAttributeNS(null, SVGConstants.SVG_TEXT_ANCHOR_ATTRIBUTE, anchor);
+        newText.setAttributeNS(null, SVGConstants.SVG_FILL_ATTRIBUTE, fill);
+        if (getTextLength(text, fontSize) > width) {
+            newText.setAttributeNS(null,  SVGConstants.SVG_TEXT_LENGTH_ATTRIBUTE, String.valueOf(width));
+            newText.setAttributeNS(null, SVGConstants.SVG_LENGTH_ADJUST_ATTRIBUTE,
+                    SVGConstants.SVG_SPACING_AND_GLYPHS_VALUE);
+        }
+        parent.appendChild(newText);
+    }
+    
+    /**
+>>>>>>> origin/master
      * Adds a text element to a region with limited width. If there are multiple lines, the text
      * will be split over multiple lines, broken on a space character. The space will still be
      * included on the next line as a small indent.
@@ -315,7 +616,7 @@ public abstract class PrintRecordSheet implements Printable {
     protected int addMultilineTextElement(Element canvas, double x, double y, double width, double lineHeight,
             String text, float fontSize, String anchor, String weight) {
         return addMultilineTextElement(canvas, x, y, width, lineHeight,
-                text, fontSize, anchor, weight, "#000000", ' ');
+                text, fontSize, anchor, weight, FILL_BLACK, ' ');
     }
     
     /**
@@ -340,26 +641,37 @@ public abstract class PrintRecordSheet implements Printable {
     protected int addMultilineTextElement(Element canvas, double x, double y, double width, double lineHeight,
             String text, float fontSize, String anchor, String weight, String fill, char delimiter) {
         int lines = 0;
+        // The index of the character after the most recent delimiter found. Everything in text
+        // up to pos will fit in the available space.
         int pos = 0;
         while (text.length() > 0) {
+            // If the remaining text fits, add a line and exit.
             if (getTextLength(text, fontSize) <= width) {
                 addTextElement(canvas, x, y, text, fontSize, anchor, weight, fill);
                 lines++;
                 return lines;
             }
+            // Check for another delimiter after the last one; we might be able to fit more text on the line.
             int index = text.substring(pos).indexOf(delimiter);
+            // If the delimiter doesn't exist in the text, add it as is.
             if ((index < 0) && (pos == 0)) {
                 addTextElement(canvas, x, y, text, fontSize, anchor, weight, fill);
                 lines++;
                 return lines;
             }
-            if ((index < 0) || (getTextLength(text.substring(0, pos + index), fontSize) > width)) {
+            // If there are no more delimiters in the text, or adding the next section after the previous
+            // delimiter that was found, add the text up to pos.
+            if ((index < 0)
+                    || ((getTextLength(text.substring(0, pos + index), fontSize) > width)
+                    && (pos > 0))) {
                 addTextElement(canvas, x, y, text.substring(0, pos), fontSize, anchor, weight, fill);
                 lines++;
                 y += lineHeight;
                 text = text.substring(pos);
                 pos = 0;
-            } else if (index > 0) {
+            } else {
+                // Otherwise we know that the text up to index will fit so we update pos to the first character
+                // after the delimiter and keep checking.
                 pos += index + 1;
             }
         }
@@ -375,7 +687,7 @@ public abstract class PrintRecordSheet implements Printable {
     private final static String FMT_LINE = " l %f %f";
     
     protected Element createPip(double x, double y, double radius, double strokeWidth) {
-        return createPip(x, y, radius, strokeWidth, PipType.CIRCLE);
+        return createPip(x, y, radius, strokeWidth, PipType.CIRCLE, FILL_WHITE);
     }
     /**
      * Approximates a circle using four Bezier curves.
@@ -386,10 +698,10 @@ public abstract class PrintRecordSheet implements Printable {
      * @return       A Path describing the circle
      */
     protected Element createPip(double x, double y, double radius, double strokeWidth,
-            PipType type) {
+            PipType type, String fill) {
         Element path = svgDocument.createElementNS(svgNS, SVGConstants.SVG_PATH_TAG);
-        path.setAttributeNS(null, SVGConstants.SVG_FILL_ATTRIBUTE, "none");
-        path.setAttributeNS(null, SVGConstants.SVG_STROKE_ATTRIBUTE, "black");
+        path.setAttributeNS(null, SVGConstants.SVG_FILL_ATTRIBUTE, fill);
+        path.setAttributeNS(null, SVGConstants.SVG_STROKE_ATTRIBUTE, FILL_BLACK);
         path.setAttributeNS(null, SVGConstants.SVG_STROKE_WIDTH_ATTRIBUTE, Double.toString(strokeWidth));
         
         // Move to start of pip, at (1, 0)
@@ -412,664 +724,42 @@ public abstract class PrintRecordSheet implements Printable {
         path.setAttributeNS(null, SVGConstants.SVG_D_ATTRIBUTE, d.toString());
         return path;
     }
-    
-    protected void addPips(Element group, int pipCount, boolean symmetric) {
-        addPips(group, pipCount, symmetric, PipType.CIRCLE, DEFAULT_PIP_SIZE);
-    }
-    
-    protected void addPips(Element group, int pipCount, boolean symmetric, PipType pipType) {
-        addPips(group, pipCount, symmetric, pipType, DEFAULT_PIP_SIZE);
-    }
-    
-    protected void addPips(Element group, int pipCount, boolean symmetric, double size) {
-        addPips(group, pipCount, symmetric, PipType.CIRCLE, size);
+
+    /**
+     * Creates a rectangle with bezier curves on the corners
+     *
+     * @param x The x coordinate of the top left corner
+     * @param y The y coordinate of the top left corner
+     * @param width The width of the rectangle
+     * @param height The height of the rectangle
+     * @param radius The radius of the curve in the corners
+     * @param control The length from the endpoint of each curve to its control point
+     * @param strokeWidth The width of the stroke
+     * @param stroke The fill color of the stroke
+     * @return A path element
+     */
+    protected Element createRoundedRectangle(double x, double y, double width, double height,
+                                             double radius, double control, double strokeWidth,
+                                             String stroke) {
+        Element path = svgDocument.createElementNS(svgNS, SVGConstants.SVG_PATH_ATTRIBUTE);
+        path.setAttributeNS(null, SVGConstants.CSS_FILL_PROPERTY, SVGConstants.SVG_NONE_VALUE);
+        path.setAttributeNS(null, SVGConstants.CSS_STROKE_PROPERTY, stroke);
+        path.setAttributeNS(null, SVGConstants.CSS_STROKE_WIDTH_PROPERTY, String.valueOf(strokeWidth));
+        path.setAttributeNS(null, SVGConstants.CSS_STROKE_LINEJOIN_PROPERTY, SVGConstants.SVG_ROUND_VALUE);
+        StringBuilder sb = new StringBuilder("M ").append(x).append(",").append(y+radius);
+        final String CURVE_FORMAT = "c %.3f,%.3f %.3f,%.3f %.3f,%.3f";
+        sb.append(String.format(CURVE_FORMAT, 0.0, -control, radius - control, -radius, radius, -radius));
+        sb.append("h ").append(width - radius * 2);
+        sb.append(String.format(CURVE_FORMAT, control, 0.0, radius, radius - control, radius, radius));
+        sb.append("v ").append(height - radius * 2);
+        sb.append(String.format(CURVE_FORMAT, 0.0, control, control - radius, radius, -radius, radius));
+        sb.append("h ").append(-width + radius * 2);
+        sb.append(String.format(CURVE_FORMAT, -control, 0.0, -radius, control - radius, -radius, -radius));
+        sb.append("Z");
+        path.setAttributeNS(null, SVGConstants.SVG_D_ATTRIBUTE, sb.toString());
+        return path;
     }
 
-    protected void addPips(Element group, int pipCount, boolean symmetric, PipType pipType,
-            double size) {
-        addPips(group, pipCount, symmetric, pipType, size, 0.5);
-    }
-    
-    /**
-     * Adds pips to the SVG diagram. The rows are defined in the SVG diagram with a series of <rect>
-     * elements, each of which determines the bounds of a row of pips. The spacing between pips is
-     * determined by the height of the first row. If rows overlap the pips are offset by half in the next
-     * row. 
-     * 
-     * @param group           A <g> element that has <rect> children that describe pip rows
-     * @param pipCount        The number of pips to place in the region
-     * @param symmetric       If true, the left and right sides will be mirror images (assuming the row
-     *                        bounds are symmetric). Used for regions on a unit's center line.
-     * @param size            The ratio of pip radius to the spacing between pips. 
-     * @param strokeWidth     The value to use for the stroke-width attribute when drawing the pips.
-     */
-    protected void addPips(Element group, int pipCount, boolean symmetric, PipType pipType,
-            double size, double strokeWidth) {
-        
-        if (pipCount == 0) {
-            return;
-        }
-        
-        final String METHOD_NAME = "addArmorPips(SVGElement,int)";
-        double spacing = 6.15152;
-        double left = Double.MAX_VALUE;
-        double top = Double.MAX_VALUE;
-        double right = 0;
-        double bottom = 0;
-        List<Rectangle2D> regions = new ArrayList<>();
-        for (int i = 0; i < group.getChildNodes().getLength(); i++) {
-            final Node r = group.getChildNodes().item(i);
-            if (r instanceof SVGRectElement) {
-                Rectangle2D bbox = getRectBBox((SVGRectElement) r);
-                if (bbox.getX() < left) {
-                    left = bbox.getX();
-                }
-                if (bbox.getY() < top) {
-                    top = bbox.getY();
-                }
-                if (bbox.getX() + bbox.getWidth() > right) {
-                    right = bbox.getX() + bbox.getWidth();
-                }
-                if (bbox.getY() + bbox.getHeight() > bottom) {
-                    bottom = bbox.getY() + bbox.getHeight();
-                }
-                regions.add(bbox);
-            }
-        }
-        if (regions.isEmpty()) {
-            MegaMekLab.getLogger().log(getClass(), METHOD_NAME, LogLevel.WARNING,
-                    "No pip rows defined for region " + group.getAttribute("id"));
-            return;
-        }
-        
-        Rectangle2D bounds = new Rectangle2D.Double(left, top, right - left, bottom - top);
-        double aspect = bounds.getWidth() / bounds.getHeight();
-        double centerLine = regions.get(0).getX() + regions.get(0).getWidth() / 2.0;
-        
-        int maxWidth = 0;
-        
-        Collections.sort(regions, (r1, r2) -> (int) r1.getY() - (int) r2.getY());
-        // Maximum number of pips that can be displayed on each row
-        int[] rowLength = null;
-        int[][] halfPipCount = null;
-        int totalPips = 0;
-        double scale = 1.0;
-        List<Rectangle2D> rows = null;
-        while (totalPips < pipCount) {
-            totalPips = 0;
-            rows = rescaleRows(regions, scale);
-            rowLength = new int[rows.size()];
-            halfPipCount = new int[rows.size()][];
-            
-            double prevRowBottom = 0;
-            int centerPip = 0;
-            spacing = rows.stream().mapToDouble(Rectangle2D::getHeight).min().orElse(spacing);
-            for (int i = 0; i < rows.size(); i++) {
-                final Rectangle2D rect = rows.get(i);
-                int halfPipsLeft = (int) ((centerLine - rect.getX()) / (spacing / 2));
-                int halfPipsRight = (int) ((rect.getX() + rect.getWidth() - centerLine) / (spacing / 2));
-                if ((i > 0) && (rect.getY() < prevRowBottom)) {
-                    centerPip = (1 - centerPip);
-                    if (halfPipsLeft %2 != centerPip) {
-                        halfPipsLeft--;
-                    }
-                    if (halfPipsRight %2 != centerPip) {
-                        halfPipsRight--;
-                    }
-                    rowLength[i] = (halfPipsLeft + halfPipsRight) / 2;
-                } else {
-                    rowLength[i] = (halfPipsLeft + halfPipsRight) / 2;
-                    centerPip = rowLength[i] % 2;
-                }
-                if (rowLength[i] > maxWidth) {
-                    maxWidth = rowLength[i];
-                }
-                halfPipCount[i] = new int[] { halfPipsLeft, halfPipsRight };
-                totalPips += rowLength[i];
-                prevRowBottom = rect.getY() + spacing;
-            }
-            
-            scale *= 0.9;
-        };
-        
-        int nRows = adjustedRows(pipCount, rows.size(), maxWidth, aspect);
-        
-        // Now we need to select the rows to use. If the total pips available in those rows is
-        // insufficient, add a row and try again.
-        
-        int available = 0;
-        int minWidth = maxWidth;
-        List<Integer> useRows = new ArrayList<>();
-        while (available < pipCount) {
-            int start = rows.size() / (nRows * 2);
-            for (int i = 0; i < nRows; i++) {
-                int r = start + i * rows.size() / nRows;
-                if (rowLength[r] > 0) {
-                    useRows.add(r);
-                    available += rowLength[r];
-                    if (rowLength[r] < minWidth) {
-                        minWidth = rowLength[r];
-                    }
-                }
-            }
-            if (available < pipCount) {
-                nRows++;
-                available = 0;
-                useRows.clear();
-                minWidth = maxWidth;
-            }
-        }
-        
-        // Sort the rows into the order pips should be added: longest rows first, then for rows of
-        // equal length the one closest to the middle first
-        final int rowCount = rows.size();
-        final int[] rowSize = Arrays.copyOf(rowLength, rowLength.length);
-        Collections.sort(useRows, (r1, r2) -> {
-            if (rowSize[r1] == rowSize[r2]) {
-                return Math.abs(r1 - rowCount / 2) - Math.abs(r2 - rowCount / 2);
-            } else {
-                return rowSize[r2] - rowSize[r1];
-            }
-        });
-        
-        // Now we iterate through the rows and assign pips as many times as it takes to get all assigned.
-        int[] pipsByRow = new int[rows.size()];
-        int remaining = pipCount;
-        while (remaining > 0) {
-            for (int r : useRows) {
-                if (rowLength[r] > pipsByRow[r]) {
-                    int toAdd = Math.min(remaining,
-                            Math.min(rowLength[r] / minWidth, rowLength[r] - pipsByRow[r]));
-                    pipsByRow[r] += toAdd;
-                    remaining -= toAdd;
-                }
-            }
-        }
-        
-        // Locations on the unit's center line require that rows with an even width don't get assigned
-        // an odd number of pips.
-        if (symmetric) {
-            // First we remove all the odd pips in even rows
-            remaining = 0;
-            for (int r = 0; r < rows.size(); r++) {
-                if ((rowLength[r] % 2 == 0) && (pipsByRow[r] % 2 == 1)) {
-                    pipsByRow[r]--;
-                    remaining++;
-                }
-            }
-            // Now we go through all the selected rows and assign them; this time even rows can
-            // only be assigned pips in pairs.
-            int toAdd = 0;
-            boolean added = false;
-            do {
-                for (int r : useRows) {
-                    toAdd = 2 - rowLength[r] % 2;
-                    if ((remaining >= toAdd) && (pipsByRow[r] + toAdd <= rowLength[r])) {
-                        pipsByRow[r] += toAdd;
-                        remaining -= toAdd;
-                    }
-                }
-            } while ((remaining > 0) && added);
-            
-            // We may still have one or more left. At this point all rows are considered available.
-            int centerRow = rows.size() / 2;
-            while (remaining > 0) {
-                for (int i = 0; i <= centerRow; i++) {
-                    int r = centerRow - i;
-                    toAdd = 2 - rowLength[r] % 2;
-                    if (remaining < toAdd) {
-                        continue;
-                    }
-                    if (rowLength[r] >= pipsByRow[r] + toAdd) {
-                        pipsByRow[r] += toAdd;
-                        remaining -= toAdd;
-                    }
-                    if (i > 0) {
-                        r = centerRow + i;
-                        if (r >= rows.size()) {
-                            continue;
-                        }
-                        toAdd = 2 - rowLength[r] % 2;
-                        if (remaining < toAdd) {
-                            continue;
-                        }
-                        if (rowLength[r] >= pipsByRow[r] + toAdd) {
-                            pipsByRow[r] += toAdd;
-                            remaining -= toAdd;
-                        }
-                    }
-                }
-                // Possible gotcha: one remaining pip to allocate and the only rows with empty space have
-                // an even number of pips. In that case remove one from an odd row and assign it along
-                // with the remaining pip to one of the even rows.
-                if (remaining == 1) {
-                    boolean noSingle = true;
-                    int fromRow = -1;
-                    for (int r = 0; r < rows.size(); r++) {
-                        if (rowLength[r] % 2 == 1) {
-                            if (pipsByRow[r] < rowLength[r]) {
-                                noSingle = false;
-                                break;
-                            } else {
-                                fromRow = r;
-                            }
-                        }
-                    }
-                    if (noSingle) {
-                        pipsByRow[fromRow]--;
-                        remaining++;
-                        for (int i = 0; i <= centerRow; i++) {
-                            int r = centerRow - i;
-                            if (rowLength[r] >= pipsByRow[r] + 2) {
-                                pipsByRow[r] += 2;
-                                remaining = 0;
-                                break;
-                            }
-                            if (i > 0) {
-                                r = centerRow + i;
-                                if (r >= rows.size()) {
-                                    continue;
-                                }
-                                if (rowLength[r] >= pipsByRow[r] + 2) {
-                                    pipsByRow[r] += 2;
-                                    remaining = 0;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        
-        // It's likely that there's extra spacing between rows, so we're going to check whether
-        // we can increase horizontal spacing between pips to keep the approximate aspect ratio.
-        
-        int firstRow = 0;
-        int lastRow = rows.size() - 1;
-        int r = 0;
-        while (r < rows.size()) {
-            if (pipsByRow[r] > 0) {
-                firstRow = r;
-                break;
-            }
-            r++;
-        }
-        r = rows.size() - 1;
-        while (r >= 0) {
-            if (pipsByRow[r] > 0) {
-                lastRow = r;
-                break;
-            }
-            r--;
-        }
-        double targetWidth = aspect * (rows.get(lastRow).getY() + rows.get(lastRow).getHeight()
-                - rows.get(firstRow).getY());
-        double hSpacing = targetWidth / pipsByRow[firstRow] - spacing;
-        for (r = firstRow + 1; r <= lastRow; r++) {
-            if (pipsByRow[r] > 0) {
-                hSpacing = Math.min(hSpacing, (Math.min(targetWidth, rows.get(r).getWidth()) - spacing) / pipsByRow[r]);
-            }
-        }
-        if (hSpacing < spacing) {
-            hSpacing = spacing;
-        }
-        
-        for (r = 0; r < pipsByRow.length; r++) {
-            if (pipsByRow[r] > 0) {
-                double radius = rows.get(r).getHeight() * size;
-                Element pip = null;
-                // Symmetric and this row is centered
-                if (symmetric && (halfPipCount[r][0] == halfPipCount[r][1])) {
-                    double leftX = centerLine - hSpacing;
-                    double rightX = centerLine;
-                    if (rowLength[r] % 2 == 1) {
-                        leftX -= radius;
-                        rightX += hSpacing - radius;
-                        if (pipsByRow[r] % 2 == 1) {
-                            pip = createPip(leftX + hSpacing, rows.get(r).getY(), radius, strokeWidth, pipType);
-                            group.appendChild(pip);
-                            pipsByRow[r]--;
-                        }
-                    } else {
-                        leftX += hSpacing / 2 - radius;
-                        rightX += hSpacing / 2 - radius;
-                    }
-                    while (pipsByRow[r] > 0) {
-                        pip = createPip(leftX, rows.get(r).getY(), radius, strokeWidth, pipType);
-                        group.appendChild(pip);
-                        pip = createPip(rightX, rows.get(r).getY(), radius, strokeWidth, pipType);
-                        group.appendChild(pip);
-                        leftX -= hSpacing;
-                        rightX += hSpacing;
-                        pipsByRow[r] -= 2;
-                    }
-                } else {
-                    // If the location is symmetric but the middle of the current row is to the left
-                    // of the centerline, right justify. If non-symmetric, balance the extra space at the
-                    // ends of the rows with any odd space going on the right margin.
-                    double x = centerLine - halfPipCount[r][0] * spacing / 2.0;
-                    if (symmetric && halfPipCount[r][0] > halfPipCount[r][1]) {
-                        x += (rowLength[r] - pipsByRow[r]) * hSpacing;
-                    } else if (!symmetric) {
-                        x += ((rowLength[r] - pipsByRow[r]) / 2) * hSpacing;
-                    }
-                    while (pipsByRow[r] > 0) {
-                        pip = createPip(x, rows.get(r).getY(), radius, strokeWidth, pipType);
-                        group.appendChild(pip);
-                        pipsByRow[r]--;
-                        x += hSpacing;
-                    }
-                }
-            }
-        }
-    }
-    
-    /**
-     * Creates a new set pip row regions sized according to the scaling factor.
-     * 
-     * @param list  The rectangular regions describing pip rows in the SVG diagram.
-     * @param scale The scaling factor
-     * @return      A list of rectangular regions scaled according to the provided factor.
-     */
-    private List<Rectangle2D> rescaleRows(List<Rectangle2D> rows, double scale) {
-        if (rows.isEmpty() || (rows.size() == Math.floor(rows.size() * scale))) {
-            return rows;
-        }
-        List<Rectangle2D> retVal = new ArrayList<>();
-        // We need to account for the possibility of gaps between some rows, so we split the
-        // list into sublists of contiguous regions.
-        List<List<Rectangle2D>> groups = new ArrayList<>();
-        List<Rectangle2D> group = new ArrayList<>();
-        for (int r = 0; r < rows.size(); r++) {
-            final Rectangle2D rect = rows.get(r);
-            group.add(rows.get(r));
-            if ((r + 1 < rows.size()) && rows.get(r + 1).getY() > rect.getY() + rect.getHeight()) {
-                groups.add(group);
-                group = new ArrayList<>();
-            }
-        }
-        if (group.size() > 0) {
-            groups.add(group);
-        }
-        
-        for (List<Rectangle2D> list : groups) {
-            Rectangle2D rect = list.get(0);
-            Rectangle2D rect2 = null;
-            double yPos = rect.getY();
-            double height = list.get(list.size() - 1).getY() + list.get(list.size() - 1).getHeight();
-            double dy = scale * height / list.size();
-            double rowHeight = dy / 0.866;
-            
-            int r = 0;
-            while ((r < list.size()) && (yPos + rowHeight <= height)) {
-                rect = list.get(r);
-                if (r + 1 < list.size()) {
-                    rect2 = list.get(r + 1);
-                } else {
-                    rect2 = null;
-                }
-                
-                if ((rect2 == null) || (rect2.getY() > yPos)) {
-                    retVal.add(new Rectangle2D.Double(rect.getX(), yPos,
-                            rect.getWidth(), rowHeight));
-                } else {
-                    double left = Math.max(rect.getX(), rect2.getX());
-                    double right = Math.min(rect.getX() + rect.getWidth(), rect2.getX() + rect2.getWidth());
-                    retVal.add(new Rectangle2D.Double(left, yPos, right - left, rowHeight));
-                }
-                
-                yPos += dy;
-                if (yPos > rect.getY() + rect.getHeight()) {
-                    r++;
-                }
-            }
-        }
-        
-        return retVal;
-    }
-    
-    /**
-     * Calculate how many rows to use to give the pip pattern the approximate aspect ratio of the region
-     * 
-     * @param pipCount  The number of pips to display
-     * @param maxRows   The maximum number of rows in the region
-     * @param maxWidth  The number of pips in the longest row
-     * @param aspect    The aspect ratio of the region (w/h)
-     * @return          The number of rows to use in the pattern
-     */
-    private int adjustedRows(int pipCount, int maxRows, int maxWidth, double aspect) {
-        double nRows = Math.min(pipCount,  maxRows);
-        double width = Math.ceil(pipCount / nRows);
-        double pipAspect = width / nRows;
-        double sqrAspect = aspect * aspect;
-        if (aspect <= 1) {
-            while ((width < maxWidth) && (nRows > 1)) {
-                double tmpWidth = width + 1;
-                double tmpRows = Math.ceil(pipCount / tmpWidth);
-                double tmpAspect = tmpWidth / tmpRows;
-                if (pipAspect * tmpAspect / sqrAspect < 2) {
-                    width = tmpWidth;
-                    nRows = tmpRows;
-                    pipAspect = tmpAspect;
-                } else {
-                    break;
-                }
-            }
-        } else {
-            while ((nRows < maxRows) && (width > 1)) {
-                double tmpRows = nRows + 1;
-                double tmpWidth = Math.ceil(pipCount / tmpRows);
-                double tmpAspect = tmpWidth / tmpRows;
-                if (pipAspect * tmpAspect / sqrAspect > 2) {
-                    width = tmpWidth;
-                    nRows = tmpRows;
-                    pipAspect = tmpAspect;
-                } else {
-                    break;
-                }
-            }
-        }
-        return (int) nRows;
-    }
-    
-    // Older method that was unsuitable for mechs but could work for vees and aerospace. Would need
-    // some updating to work with regions rather than fixed pips in the SVG.
-    protected void setArmorPips(Element group, int armorVal, boolean symmetric) {
-        final String METHOD_NAME = "setArmorPips(SVGElement,int)";
-        // First sort pips into rows. We can't rely on the pips to be in order, so we use
-        // maps to allow non-sequential loading.
-        Map<Integer,Map<Integer,Element>> rowMap = new TreeMap<>();
-        int pipCount = 0;
-        for (int i = 0; i < group.getChildNodes().getLength(); i++) {
-            final Node n = group.getChildNodes().item(i);
-            if (n instanceof SVGElement) {
-                final SVGElement pip = (SVGElement) n;
-                try {
-                    int index = pip.getId().indexOf(":");
-                    String[] coords = pip.getId().substring(index + 1).split(",");
-                    int r = Integer.parseInt(coords[0]);
-                    rowMap.putIfAbsent(r, new TreeMap<>());
-                    rowMap.get(r).put(Integer.parseInt(coords[1]), pip);
-                    pipCount++;
-                } catch (Exception ex) {
-                    MegaMekLab.getLogger().log(getClass(), METHOD_NAME, LogLevel.ERROR,
-                            "Malformed id for SVG armor pip element: " + pip.getId());
-                }
-            }
-        }
-        if (pipCount < armorVal) {
-            MegaMekLab.getLogger().log(getClass(), METHOD_NAME, LogLevel.ERROR,
-                    "Armor pip group " + ((SVGElement) group).getId() + " does not contain enough pips for " + armorVal + " armor");
-            return;
-        } else if (pipCount == armorVal) {
-            // Simple case; leave as is
-            return;
-        }
-        // Convert map into array for easier iteration in both directions. This will also skip
-        // over gaps in the numbering.
-        Element[][] rows = new Element[rowMap.size()][];
-        int row = 0;
-        for (Map<Integer,Element> r : rowMap.values()) {
-            rows[row] = new Element[r.size()];
-            int i = 0;
-            for (Element e : r.values()) {
-                rows[row][i] = e;
-                i++;
-            }
-            row++;
-        }
-        
-        // Get the ratio of the number of pips to show to the total number of pips
-        // and distribute the number of pips proportionally to each side
-        double saturation = Math.min(1.0, (double) armorVal / pipCount);
-        
-        // Now we find the center row, which is the row that has the same number of pips above
-        // and below it as nearly as possible.
-        
-        int centerRow = rows.length / 2;
-        int pipsAbove = 0;
-        for (int r = 0; r < rows.length; r++) {
-            pipsAbove += rows[r].length;
-            if (pipsAbove > pipCount / 2) {
-                centerRow = r;
-                break;
-            }
-        }
-        int showAbove = (int) Math.round(pipsAbove * saturation);
-        int showBelow = armorVal - showAbove;
-        // keep a running total of the number to hide in each row
-        int[] showByRow = new int[rows.length];
-        double remaining = pipsAbove;
-        for (int i = centerRow; i >= 0; i--) {
-            showByRow[i] = (int) Math.round(rows[i].length * showAbove / remaining);
-            if (symmetric && (showByRow[i] > 0) && (showByRow[i] % 2) != (rows[i].length % 2)) {
-                if ((showByRow[i] < showAbove) && (showByRow[i] < rows[i].length)) {
-                    showByRow[i]++;
-                } else {
-                    showByRow[i]--;
-                }
-            }
-            showAbove -= showByRow[i];
-            remaining -= rows[i].length;
-        }
-        // We may have some odd ones left over due to symmetry imposed on middle pip of the row
-        showBelow += showAbove;
-        remaining = pipCount - pipsAbove;
-        for (int i = centerRow + 1; i < rows.length; i++) {
-            showByRow[i] = (int) Math.round(rows[i].length * showBelow / remaining);
-            if (symmetric && (showByRow[i] > 0) && (showByRow[i] % 2) != (rows[i].length % 2)) {
-                if ((showByRow[i] < showBelow) && (showByRow[i] < rows[i].length)) {
-                    showByRow[i]++;
-                } else {
-                    showByRow[i]--;
-                }
-            }
-            showBelow -= showByRow[i];
-            remaining -= rows[i].length;
-        }
-        
-        // Now we need to deal with leftovers, starting in the middle and adding one or two at a time
-        // (depending on whether there are an odd or even number of pips in the row) moving out toward
-        // the top and bottom and repeating until they are all placed.
-        
-        remaining = showBelow;
-        while (remaining > 0) {
-            for (int i = 0; i <= centerRow; i++) {
-                row = centerRow - i;
-                int toAdd = symmetric? (2 - rows[row].length % 2) : 1;
-                if (remaining < toAdd) {
-                    continue;
-                }
-                if (rows[row].length >= showByRow[row] + toAdd) {
-                    showByRow[row] += toAdd;
-                    remaining -= toAdd;
-                }
-                if (i > 0) {
-                    row = centerRow + i;
-                    if (row >= rows.length) {
-                        continue;
-                    }
-                    toAdd = symmetric? (2 - rows[row].length % 2) : 1;
-                    if (remaining < toAdd) {
-                        continue;
-                    }
-                    if (rows[row].length >= showByRow[row] + toAdd) {
-                        showByRow[row] += toAdd;
-                        remaining -= toAdd;
-                    }
-                }
-            }
-        }
-        
-        // Now select which pips in each row to hide
-        for (row = 0; row < rows.length; row++) {
-            int toHide = rows[row].length - showByRow[row];
-            if (toHide == 0) {
-                continue;
-            }
-            double ratio = (double) toHide / rows[row].length;
-            int length = rows[row].length;
-            if (symmetric) {
-                length /= 2;
-                if (toHide % 2 == 1) {
-                    hideElement(rows[row][length]);
-                    toHide--;
-                    ratio = (double) toHide / (rows[row].length - 1);
-                }
-            }
-            Set<Integer> indices = new HashSet<>();
-            double accum = 0.0;
-            for (int i = length % 2; i < length; i += 2) {
-                accum += ratio;
-                if (accum >= 1 -saturation) {
-                    indices.add(i);
-                    accum -= 1.0;
-                    toHide--;
-                    if (symmetric) {
-                        indices.add(rows[row].length - 1 - i);
-                        toHide--;
-                    }
-                }
-                if (toHide == 0) {
-                    break;
-                }
-            }
-            if (toHide > 0) {
-                for (int i = length - 1; i >= 0; i -= 2) {
-                    accum += ratio;
-                    if (accum >= saturation) {
-                        indices.add(i);
-                        accum -= 1.0;
-                        toHide--;
-                        if (symmetric) {
-                            indices.add(rows[row].length - 1 - i);
-                            toHide--;
-                        }
-                    }
-                    if (toHide == 0) {
-                        break;
-                    }
-                }
-            }
-            int i = 0;
-            while (toHide > 0) {
-                if (!indices.contains(i)) {
-                    indices.add(i);
-                    toHide--;
-                    if (symmetric) {
-                        indices.add(rows[row].length - 1 - i);
-                        toHide--;
-                    }
-                }
-                i++;
-            }
-            for (int index : indices) {
-                hideElement(rows[row][index]);
-            }
-        }
-    }
-    
     protected void hideElement(String id) {
         Element element = svgDocument.getElementById(id);
         if (null != element) {
@@ -1123,6 +813,11 @@ public abstract class PrintRecordSheet implements Printable {
         return font.getStringBounds(text, svgGenerator.getFontRenderContext()).getWidth();
     }
     
+    public double getBoldTextLength(String text, float fontSize) {
+        Font font = getBoldFont(fontSize);
+        return font.getStringBounds(text, svgGenerator.getFontRenderContext()).getWidth();
+    }
+    
     public static Rectangle2D getRectBBox(SVGRectElement rect) {
         return new Rectangle2D.Float(rect.getX().getBaseVal().getValue(),
                 rect.getY().getBaseVal().getValue(),
@@ -1139,7 +834,10 @@ public abstract class PrintRecordSheet implements Printable {
      * @param center     Whether to center the image vertically and horizontally.
      */
     public void embedImage(File imageFile, Element canvas, Rectangle2D bbox, boolean center) {
+<<<<<<< HEAD
         final String METHOD_NAME = "addFluffImage(File,Rectangle2D)";
+=======
+>>>>>>> origin/master
         if (null == imageFile) {
             return;
         }
@@ -1172,6 +870,7 @@ public abstract class PrintRecordSheet implements Printable {
                     "data:" + mimeType + ";base64," + Base64.getEncoder().encodeToString(bytes.toByteArray()));
             canvas.appendChild(img);
         } catch (FileNotFoundException e) {
+<<<<<<< HEAD
             // TODO Auto-generated catch block
             MegaMekLab.getLogger().log(PrintRecordSheet.class, METHOD_NAME, LogLevel.ERROR,
                     "Fluff image file not found: " + imageFile.getPath());
@@ -1179,7 +878,42 @@ public abstract class PrintRecordSheet implements Printable {
             // TODO Auto-generated catch block
             MegaMekLab.getLogger().log(PrintRecordSheet.class, METHOD_NAME, LogLevel.ERROR,
                     "Error reading fluff image file: " + imageFile.getPath());
+=======
+            LogManager.getLogger().error("Fluff image file not found: " + imageFile.getPath());
+        } catch (IOException e) {
+            LogManager.getLogger().error("Error reading fluff image file: " + imageFile.getPath());
         }
-        
+    }
+
+    /**
+     * Used to determine whether to scale the record sheet to make room for charts. This
+     * depends both on whether the option is selected and on whether the sheet supports
+     * reference charts.
+     *
+     * @return Whether to include reference tables
+     */
+    protected boolean includeReferenceCharts() {
+        return false;
+    }
+
+    protected List<ReferenceTable> getRightSideReferenceTables() {
+        return Collections.emptyList();
+    }
+
+    protected void addReferenceCharts(PageFormat pageFormat) {
+        List<ReferenceTable> rightSide = getRightSideReferenceTables();
+        double lines = rightSide.stream().mapToDouble(ReferenceTable::lineCount).sum();
+
+        double ypos = pageFormat.getImageableY();
+        double margin = ReferenceTable.getMargins(this);
+        for (ReferenceTable table : rightSide) {
+            double height = (pageFormat.getImageableHeight() - margin * rightSide.size())
+                    * table.lineCount() / lines + margin;
+            getSVGDocument().getDocumentElement().appendChild(
+                    table.createTable(pageFormat.getImageableX() + pageFormat.getImageableWidth() * 0.8 + 3.0,
+                            ypos, pageFormat.getImageableWidth() * 0.2, height));
+            ypos += height;
+>>>>>>> origin/master
+        }
     }
 }

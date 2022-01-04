@@ -13,67 +13,52 @@
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
  */
-
 package megameklab.com.ui.dialog;
 
-import java.awt.Dimension;
+import megamek.client.ui.swing.UnitLoadingDialog;
+import megamek.common.Entity;
+import megamek.common.MechFileParser;
+import megameklab.com.util.UnitPrintManager;
+import org.apache.logging.log4j.LogManager;
+
+import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
 
-import javax.swing.BorderFactory;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JDialog;
-import javax.swing.JFileChooser;
-import javax.swing.JFrame;
-import javax.swing.JList;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.ScrollPaneConstants;
-import javax.swing.WindowConstants;
-import javax.swing.filechooser.FileNameExtensionFilter;
-
-import megamek.client.ui.swing.UnitLoadingDialog;
-import megamek.client.ui.swing.UnitSelectorDialog;
-import megamek.common.Entity;
-import megamek.common.MechFileParser;
-import megameklab.com.util.UnitPrintManager;
-
-/*
+/**
  * Allows a user to Select Multiple units to print
  */
 public class UnitPrintQueueDialog extends JDialog implements ActionListener, KeyListener {
-
-    /**
-     *
-     */
     private static final long serialVersionUID = 4812586858732825464L;
 
-    JList<String> unitList = new JList<String>();
+    JList<String> unitList = new JList<>();
     JScrollPane listScrollPane;
 
-    private JButton bCancel = new JButton("Close");
-    private JButton bPrint = new JButton("Print");
-    private JButton bSelectFile = new JButton("Select From File");
-    private JButton bSelectCache = new JButton("Select From Cache");
-    private JButton bRemove = new JButton("Remove");
-    private JCheckBox chSinglePrint = new JCheckBox("Print Single");
-    private JFrame clientgui;
+    private final JButton bCancel = new JButton("Close");
+    private final JButton bPrint = new JButton("Print");
+    private final JButton bSelectFile = new JButton("Select From File");
+    private final JButton bSelectCache = new JButton("Select From Cache");
+    private final JButton bRemove = new JButton("Remove");
+    private final JCheckBox chSinglePrint = new JCheckBox("Print Single");
+    private final JFrame clientgui;
 
-    private JPanel buttonPanel = new JPanel();
+    private final List<Entity> units = new ArrayList<>();
+    final boolean pdf;
 
-    private Vector<Entity> units = new Vector<Entity>();
-
-    public UnitPrintQueueDialog(JFrame frame) {
+    public UnitPrintQueueDialog(JFrame frame, boolean pdf) {
 
         super(frame, "Unit Print Queue", true);
 
         clientgui = frame;
+        this.pdf = pdf;
 
         // construct a model and list
         JPanel masterPanel = new JPanel();
@@ -86,6 +71,7 @@ public class UnitPrintQueueDialog extends JDialog implements ActionListener, Key
         // listScrollPane.setViewportView(masterPanel);
         listScrollPane.setBorder(BorderFactory.createEmptyBorder());
 
+        JPanel buttonPanel = new JPanel();
         buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
         buttonPanel.add(chSinglePrint);
         buttonPanel.add(bSelectCache);
@@ -149,14 +135,21 @@ public class UnitPrintQueueDialog extends JDialog implements ActionListener, Key
         }
 
         if (ae.getSource() == bPrint) {
-            UnitPrintManager.printAllUnits(units, chSinglePrint.isSelected());
+            if (pdf) {
+                File exportFile = UnitPrintManager.getExportFile(clientgui);
+                if (exportFile != null) {
+                    UnitPrintManager.exportUnits(units, exportFile, chSinglePrint.isSelected());
+                }
+            } else {
+                UnitPrintManager.printAllUnits(units, chSinglePrint.isSelected());
+            }
             dispose();
         }
 
         if (ae.getSource().equals(bSelectCache)) {
             UnitLoadingDialog unitLoadingDialog = new UnitLoadingDialog(clientgui);
             unitLoadingDialog.setVisible(true);
-            UnitSelectorDialog viewer = new UnitSelectorDialog(clientgui, unitLoadingDialog, true);
+            MegaMekLabUnitSelectorDialog viewer = new MegaMekLabUnitSelectorDialog(clientgui, unitLoadingDialog);
 
             viewer.setVisible(false);
             Entity entity = viewer.getChosenEntity();
@@ -166,7 +159,7 @@ public class UnitPrintQueueDialog extends JDialog implements ActionListener, Key
                 refresh();
             }
         } else if (ae.getSource().equals(bSelectFile)) {
-            String filePathName = System.getProperty("user.dir").toString() + "/data/mechfiles/";
+            String filePathName = System.getProperty("user.dir") + "/data/mechfiles/";
 
             JFileChooser f = new JFileChooser(filePathName);
             f.setLocation(clientgui.getLocation().x + 150, clientgui.getLocation().y + 100);
@@ -189,7 +182,7 @@ public class UnitPrintQueueDialog extends JDialog implements ActionListener, Key
                     Entity tempEntity = new MechFileParser(entityFile).getEntity();
                     units.add(tempEntity);
                 } catch (Exception ex) {
-                    ex.printStackTrace();
+                    LogManager.getLogger().error(ex);
                 }
             }
             refresh();
@@ -221,9 +214,8 @@ public class UnitPrintQueueDialog extends JDialog implements ActionListener, Key
     }
 
     private void refresh() {
-
         unitList.removeAll();
-        Vector<String> unitNameList = new Vector<String>();
+        Vector<String> unitNameList = new Vector<>();
 
         for (Entity ent : units) {
             unitNameList.add(String.format("%1$s %2$s", ent.getChassis(), ent.getModel()).trim());
@@ -258,5 +250,4 @@ public class UnitPrintQueueDialog extends JDialog implements ActionListener, Key
 
     public void windowOpened(java.awt.event.WindowEvent windowEvent) {
     }
-
 }

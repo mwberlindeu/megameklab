@@ -16,46 +16,23 @@
 
 package megameklab.com.ui;
 
-import java.awt.Dimension;
-import java.awt.Frame;
+import megamek.common.Entity;
+import megamek.common.preference.PreferenceManager;
+import megameklab.com.util.CConfig;
+import megameklab.com.ui.util.RefreshListener;
+
+import javax.swing.*;
+import javax.swing.UIManager.LookAndFeelInfo;
+import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
-import javax.swing.JFrame;
-import javax.swing.JOptionPane;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
-import javax.swing.UIManager.LookAndFeelInfo;
-
-import megamek.common.Entity;
-import megamek.common.EquipmentType;
-import megamek.common.MechSummaryCache;
-import megameklab.com.MegaMekLab;
-import megameklab.com.util.CConfig;
-import megameklab.com.util.RefreshListener;
-import megameklab.com.util.UnitUtil;
-
-public abstract class MegaMekLabMainUI extends JFrame implements
-        RefreshListener, EntitySource {
-
-    /**
-     *
-     */
-    private static final long serialVersionUID = 3971760390511127766L;
+public abstract class MegaMekLabMainUI extends JFrame implements RefreshListener, EntitySource {
 
     private Entity entity = null;
-
+    protected MenuBar menubarcreator;
+    
     public MegaMekLabMainUI() {
-
-        EquipmentType.initializeTypes();
-        MechSummaryCache.getInstance();
-        UnitUtil.loadFonts();
-        new CConfig();
-        System.out.println("Starting MegaMekLab version: " + MegaMekLab.VERSION);
-        
-        setLookAndFeel();
-
-        setLocation(getLocation().x + 10, getLocation().y);
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
             @Override
@@ -63,17 +40,42 @@ public abstract class MegaMekLabMainUI extends JFrame implements
                 exit();
             }
         });
-
-        Dimension maxSize = new Dimension(CConfig.getIntParam("WINDOWWIDTH"), CConfig.getIntParam("WINDOWHEIGHT"));
-        // masterPanel.setPreferredSize(new Dimension(600,400));
-        // scroll.setPreferredSize(maxSize);
         setResizable(true);
-        setSize(maxSize);
-        setPreferredSize(maxSize);
         setExtendedState(CConfig.getIntParam("WINDOWSTATE"));
-        setLocation(CConfig.getIntParam("WINDOWLEFT"), CConfig.getIntParam("WINDOWTOP"));
     }
 
+    protected void finishSetup() {
+        menubarcreator = new MenuBar(this);
+        setJMenuBar(menubarcreator);
+        reloadTabs();
+        setSizeAndLocation();
+        setVisible(true);
+        refreshAll();
+    }
+    
+    protected void setSizeAndLocation() {
+        DisplayMode currentMonitor = getGraphicsConfiguration().getDevice().getDisplayMode();
+        
+        //figure out size dimensions
+        pack();
+        int w = getSize().width;
+        int h = getSize().height;
+        if(currentMonitor.getWidth() < w) {
+            w = currentMonitor.getWidth();
+        }
+        if(currentMonitor.getHeight() < h) {
+            h = currentMonitor.getHeight();
+        }
+        Dimension size = new Dimension(w, h);
+        setSize(size);
+        setPreferredSize(size);
+        
+        //set location - put in center not top left
+        int x = (currentMonitor.getWidth()-w)/2;
+        int y = (currentMonitor.getHeight()-h)/2;
+        setLocation(x, y);
+    }
+    
     /**
      * Sets the look and feel for the application.
      * 
@@ -92,15 +94,6 @@ public abstract class MegaMekLabMainUI extends JFrame implements
 
         });
     }
-
-    private void setLookAndFeel() {
-        try {
-            String plaf = CConfig.getParam(CConfig.CONFIG_PLAF, UIManager.getSystemLookAndFeelClassName());
-            UIManager.setLookAndFeel(plaf);
-        } catch (Exception e) {
-            MegaMekLab.getLogger().error(getClass(), "setLookAndFeel()", e);
-       }
-    }
     
     public void exit() {
         String quitMsg = "Do you really want to quit MegaMekLab?"; 
@@ -112,13 +105,18 @@ public abstract class MegaMekLabMainUI extends JFrame implements
             CConfig.setParam("WINDOWSTATE", Integer.toString(getExtendedState()));
             // Only save position and size if not maximized or minimized.
             if (getExtendedState() == Frame.NORMAL) {
+                /*
+                 * Not saving this anymore because this is set always to the center of
+                 * screen and big enough to fit all the components for a given MainUI
                 CConfig.setParam("WINDOWHEIGHT", Integer.toString(getHeight()));
                 CConfig.setParam("WINDOWWIDTH", Integer.toString(getWidth()));
                 CConfig.setParam("WINDOWLEFT", Integer.toString(getX()));
                 CConfig.setParam("WINDOWTOP", Integer.toString(getY()));
+                */
             }
             CConfig.setParam(CConfig.CONFIG_PLAF, UIManager.getLookAndFeel().getClass().getName());
             CConfig.saveConfig();
+            PreferenceManager.getInstance().save();
 
             System.exit(0);
         }

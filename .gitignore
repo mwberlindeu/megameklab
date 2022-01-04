@@ -13,3 +13,10 @@ timestamp
 /.classpath
 /.project
 /properties_local.gradle
+.idea/
+.vscode/
+
+# Data Files
+data/fonts/
+data/mechfiles/
+!data/mechfiles/UnitVerifierOptions.xml

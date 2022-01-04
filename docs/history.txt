@@ -1,6 +1,405 @@
 VERSION HISTORY:
 ----------------
+<<<<<<< HEAD
 v0.45.2-SNAPSHOT
+=======
+0.49.6-SNAPSHOT
++ Issue #908: Corrections to the Aero reference tables
++ Issue #943: Add CASE info to ammo on non-Mech Record Sheets
++ Issues #646, #953: Show Ammo Shots and Weapon Maximum Damage in tooltips
++ Issue #785: Tab-based Scrollpanes
++ PR #961: Preserve expanded state of Large Aero Weapon Bays
++ PR #960, 963: Large Aero Crit Visual Improvements
++ PR #864: Update to Apache FOP 2.5: Modern Font Support Improvements
++ PR #966: Large Craft Weight-Free Slot and Additional Tonnage Visual Improvements
++ PR #967: Large Aero Crit View Bug Fixes
++ PR #969: Updating Apache XML Graphic dependencies: FOP to 2.6, Batik to 1.14
++ PR #970: Updating PDF Box to 2.0.24
++ PR #971: Crit Cell and Tooltip Improvements
++ PR #977: Log4j2 2.15.0 Swapover From Log4j1 1.2.17
++ PR #980: Log4j2 2.16.0 Update
+
+0.49.5 (2021-11-06 1800 UTC)
+
+0.49.4 (2021-10-30 1800 UTC)
++ PR #948: Update infantry record sheet printing for primary weapons doing more than .6 damage per trooper
++ PR #949: Standardized Suite Version Tracking
++ Issue #935: Can change jump MP and jump jet type on BA that didn't have jump jets without the app freaking out
+
+0.49.3 (2021-08-23 2000 UTC)
++ Issue #898: Heavy-Duty Pile Driver and arm actuators
+
+0.49.2 (2021-06-19 2330 UTC)
++ Issue #912: Changing AMS, A-Pod, and B-Pod display text from PD to PB
++ Issue #905: Preventing Full Head Ejection NPE
++ PR #917: Remove prototype heatsinks from equipment tab
++ PR #918: Show unused tonnage in the status bar
++ PR #919: Show multiple equipment locations on the record sheet
++ Issue #870: Wrong aerospace fighter speed in clipboard export
++ Issue #871: Partial Wing heat dissipation on record sheet
++ Issue #873: Beagle Active Probe range on record sheet
++ Issue #885: Heat Sink/Laser Insulator Interaction on Vehicles
++ Issue #886: Prototype Triple Strength Myomer
++ Issue #884: Reengineered laser damage type
++ PR #926: Enable infantry field guns to use HVACs, if you wanted to do that for some reason
++ Issue #888: Artemis IV Validation
++ Issue #890: Mixed Tech QuaddVee Compact Heat Sinks multiple problems
++ Issue #897: Additional peculiar entry for Clan Machine-Gun Ammo
++ Bug: IS MASC not filtered out with Clan tech base
+
+0.49.1 (2021-05-23 1630 UTC)
+
+0.49.0 (2021-05-01 2130 UTC)
++ PR #859: Allow MML config to be loaded in memory only
++ PR #892: Account for missing actuators in shield pips
++ PR #894: Change source and target compatibility to Java 11
++ Issue #638: Industrial Mechs should be able to use Torso Mounted Cockpits
+
+0.48.0 (Stable) - (2021-03-05 1530 UTC)
+
+0.47.17 (RC3) (2021-02-075 2015 UTC)
++ Issue #861: Advanced SRM wrong damage/missile
++ Issue #860: Aero missiles available to tanks
++ Issue #866: Cannot assign Artemis IV or V to Improved missiles on dropships
++ Issue #872: Incorrect loaded design validation for clan LFC warship armor
++ Issue #858: Patchwork crits for some armor types
++ Issue #879: Cannot assign Modular Armor to be rear facing
+
+0.47.16 (RC2) (2021-01-05 1700 UTC)
++ Issue #845: Compact engine and gyro not adjacent on superheavies
++ Issue #846: Ammunition in any location on a Clan 'Mech giving explosive ammunition BV penalty
+
+0.47.15 (RC1) (2020-12-14 2330 UTC)
++ PR #832: Switch to EquipmentType::equals for AmmoType, etc
++ Issue #830: Older primitive small craft get more fuel than newer ones
++ Issue #840: Patchwork Armor on VTOL rotor incorrectly flagged as invalid
++ Issue #841: Superheavy patchwork armor crits
++ Issue #842: Double heatsinks incorrectly switching between Clan and IS versions
++ Issue #844: Talons not handled correctly for superheavies or tripods
+
+0.47.14 (2020-11-15 1930 UTC)
++ Issue #822: Primitive small craft still restricted to 2345 or later
++ Issue #824: Rocket launchers and large craft
++ Issue #826: Fix Hit Location Table title typo
+
+0.47.13 (2020-11-09 1600 UTC) 
++ Issue #821: Primitive Armor on large spacecraft errors
++ Issue #823: Primitive dropship engine and control mass by year not applied correctly
+
+0.47.12 (2020-11-08 2230 UTC) 
++ Issue #761: Cost of communications equipment does not reflect size
++ Issue #758: Damage notation for torpedoes and prototype rockets incorrect
++ Issue #762: No cost for heat sinks and power amplifier for spot welders on ICE vehicles
++ Issue #763: Cost for cargo bays on vehicles is incorrect
++ Issue #765: Really early dropships and small craft not allowed
++ Issue #773: Superheavy industrialmechs fail validation
++ Issue #793: Industrialmechs with DHS loaded as SHS
++ Issue #770: Status message about unallocated heat sinks is confusing
++ Issue #775: Quarters on large aerospace craft again have a c-bill cost, but other bays do not 
++ Issue #777: Direct Neural Interface blanks out Summary and TRO
++ Issue #784: Sub-Cap Ammo weight discrepancy
++ PR #801: Printing progress bar and memory use improvement
++ Issue #342: Incomplete queued print
++ PR #803: Add an outline to PDF output
++ Issue #802: Record Sheets printing small for layout
++ Issue #807:TAG (Light, Man-Portable) is misclassified
++ Issue #746: Weird margins on printing
++ Issue #665: Formatting Issue when printing vehicles or battle armor
++ PR #810: Show munition type on record sheet
++ Issue #812: Super-heavy trailer not possible (Combat Vehicles)
++ PR #812: Add optional reference tables for vehicle record sheets
++ PR #818: Optional reference tables for aerospace record sheets
++ Issue #816: Split equipment not printing second location on RS Weapon and Equipment Inventory
++ PR #820: Optional reference tables for infantry and protomechs
+
+0.47.11 (2020-10-04 2100 UTC)
++ Issue #768: Patchwork armor error
++ Issue #749: Tag for special internal structure missing on Record Sheets
++ Issue #726: Small support vehicle record sheet shows weight in tons
++ Issue #756: Seating/Quarters absent from Fixed Wing Support Vehicle record sheet
++ Issue #767: Small fixed wing support vehicles with weapons invalid on load
++ PR #786: Small fixed wing SV corrections
++ Issue #754: Coolant pods hard to find in Aerospace Fighter UI
++ Issue #752: Saving loading Issue with Primitive armor on Dropship
+
+0.47.10 (2020-09-20 2100 UTC)
++ Issue #700: Heat display for IndustrialMechs does not update after changing engine types
++ Issue #722: VSTOL equipment does not appear on fighter record sheets
++ Issue #723: LAMs add pilot data even if none is specified
++ Issue #725: Artillery cannons and infantry record sheets
++ Issue #712: Bug Small craft validation passed with electronics not assigned to a slot
++ Issue #724: Batch exporting to pdf does not add file extension
++ Issue #737: Speed modifier for supercharger on vehicle sheet
++ Issue #738: infantry flamers not marked as flame based
++ Issue #739: Tripods introduction date inaccurate
++ Issue #740: Oddball characters appearing on infantry record sheet
++ PR #760: Edit small SV ammo capacity
+
+0.47.9 (2020-08-07 1830 UTC)
++ Issue #693: RFE Combat Crew Seating
++ Issue #699: Critical slots for cargo incorrectly displayed in Unallocated Equipment list
++ Issue #658: ARTS Transport Bays
++ Issue #710: Clan Battle Armor VTOL system appears to have a tech rating of E
++ Issue #719: Troublesome one shot ammunition popping up
++ Issue #720: Mech running speed rounding error on certain exported record sheets
++ Issue #713: Support vehicle tech rating in Preview does not reflect structure, engine, or armor tech ratings
++ Issue #714: Battle Armor Missile Ammo not refreshing for TRO Entry
++ Issue #721: Smart robotic control system not appearing on mech record sheet
+
+0.47.8 (2020-08-02 2300 UTC)
++ PR #664: Quick reference tables for mech record sheets
++ Issue #611: [Errata] Naval Repair Facilities should use 2 docking collars no matter their capacity
++ Issue #636: TRO summary does not show armored components
++ Issue #644: Weight-Free Heat Sinks of Small Craft and Dropship is not changed when change the shape
++ Issue #642: Removed weapons of Aerospace Fighter's ammunition is still available
++ Issue #645: Unequal BV calculation when adding CASE (II)
++ Issue #647: Quarters, infantry bay, and Life Support cost calculations are wrong on large craft
++ Issue #654: Base Tech of the ammunition of Thumper Artillery is changed to Clans if change the unit to Mixed Inner Sphere
++ Issue #655: Mass Drivers use more slots than shown
++ PR #673: Indicate commercial armor on mech record sheet
++ Issue #657: Tripod/Super Heavy Tech base show -Error-
++ Issue #659: Jumping MP not updated if Improved Jump Jets are removed as a result of changing the production year of a Mek
++ Issue #661: Cannot create bays with 0 doors (except plain Cargo) on large aerospace units
++ Issue #662: Loading Combat Vehicle with Vehicular Stealth Armor always make a new section named Vehicular Stealth
++ Issue #668: Aft Right weapons arc on spheroid DropShips does not properly display extra fire control tonnage
++ Issue #670: Changing DropShip engine from military to civilian does not update displayed information
++ Issue #677: Electronic Warfare equipment (ECM, Beagle, etc) ranges missing from RS
++ Issue #681: StringIndexOutOfBoundsException errors, possibly a problem loading Mission Equipment Storage
++ Issue #682: Equipment from older version of MML failing to load
++ Issue #679: LRM/SRM bays on large aerospace units do not reflect damage increase from Artemis IV
++ Issue #695: Specialized Infantry, No Secondary Weapons error with no 2nd weapons 
++ Issue #705: External engine type in Rail Support Vehicle causes load failure
++ Issue #703: Printing issues for HMG and VSP
++ Issue #708: Heavy Vibro-Claw causes NPE
++ PR #709: Record sheet option: support for tabletop miniatures scale
+
+0.47.7 (2020-06-22 2330 UTC)
++ Issue #614: Change the list of equipment while sort by Crit section cause error
++ Issue #612: Overlapping Text in Vehicle Record Sheet
++ Bug: Can't assign UMU to ProtoMech
++ Issue #620: Dropshuttle bay cost calculation
++ Issue #622: Grenade launchers break fighter record sheets
++ Issue #623: Torpedoes have a listed range of zero on record sheets
++ Issue #627: Some Quad Protomech Maximum armor values are incorrect
++ PR #629: Protomech record sheet overhaul (can now print quads, gliders, and ultraheavies)
++ Issue #625: Command Consoles do not appear on aerospace fighter record sheets.
++ PR #632: Export record sheet directly to PDF
++ Issue #342: Incomplete queued print
++ PR #634: Option to show total heat and dissipation on record sheet
++ PR #635: Option to print TacOps expanded heat scale on record sheet
++ PR #639: New printing options: page size and color/monochrome
++ PR #640: Early Clans and IS tech
++ PR #610: Edit size of variable sized equipment on the equipment tab
++ PR #649: Record sheet inventory text overlap
++ Issue #656: Mounting artillery on a DropShip leads to the wrong date for Availability in Preview
+
+
+0.47.6 (2020-5-03 1715 UTC)
++ Issue #553: Loading or printing LAM causes ArrayIndexOutOfBoundsException
++ PR #557: BattleArmor record sheet overhaul
++ Issue #536: Support Fixed Wing Aircraft with Propeller mod will not validate
++ Issue #556: Basic saved file name does not have a space between Chassis and Model
++ Issue #555: Can't add Ammo to SV's
++ Issue #571: Environmental Sealing chassis mod on support vehicles requires 8 item slots
++ Issue #578: Squad Support Weapon Weight Calculations off
++ Issue #582: Large support vehicles incorrectly flag some equipment locations as invalid
++ Issue #581: Rotors can have more than 2 points of armor
++ Issue #550: Battle Armor bomb rack ammo critical space
++ Issue #583: Small SV Cargo weirdness
++ Issue #587: Unit transport bays can be added by half cubicle
++ Issue #531: Armored motive system appears in equipment list for VTOLs and rail
++ Issue #533: BV for Swarm-I ammunition shows floating point errors
++ Issue #538: Auto-allocation of armor for fixed-wing support craft loses armor points
++ Issue #539: I can't add some items to fixed-wing support units
++ Issue #540: Weight breakdown shows all weights rounded to one decimal place
++ Issue #591: Vehicular Grenade Launchers/Vehicular mine dispensers not available on aerospace craft
++ Issue #537: Formatting error in Unit Cost Breakdown for fixed-wing support units
++ Issue #541: Allocated armor is not reported correctly for DropShips/small craft after SI changes.
++ Issue #542: The Infantry Compartment field on the Transport pane is ignored for DropShips and small craft
++ Issue #552: Changing bay personnel can incorrectly change base and total crew on a JS/WS/station
++ Issue #559: Naval Com-Scanner Suites require no crew
++ Issue #562: Fuel mass for advanced aerospace craft appears to be rounded down to the nearest whole ton
++ Issue #593: TRO shows incorrect ammo shot count for weapon bays
++ Issue #595: All mechs with ICE or fuel cell need power amplifiers
++ Issue #596: Combat vehicle environmental sealing takes no mass
++ Issue #598: Extraneous weapons appearing on fighter record sheet
++ Issue #543: I can't always assign legal values for the armor tonnage on Small craft/DropShips
++ Issue #546: Dropdown menu's text turns invisible
+
+0.47.5 (2020-4-01 2000 UTC)
++ Issue #435: Infantry exports not going to TXT, only HTML
++ Issue #437: Disappearing DS Collars on Space Station
++ Issue #430: Spreadable equipment disappears when removed from tripod center leg
++ Issue #438: MML not tracking Single heatsink to Double(Freezer) Change
++ Issue #441: Battle Armor with Armored Glove and Anti Personnel Weapon Mount saves weapons as Armored Glove have the AP weapon.
++ Issue #447: Seats are free on support vehicles
++ Issue #448: Bay doors are free on support vehicles
++ Issue #451: VTOL rotors not included in Unit Cost Breakdown
++ Issue #453: Light fluid suction system has the wrong weight
++ Issue #444: Aerospace Fighter's Preview says that reduced Heat Sink is damaged.
++ Issue #450: Trouble adding jet boosters to support VTOLs
++ Issue #452: Engine ratings on combat vehicles not automatically rounded up to a multiple of 5 for cost purposes
++ Issue #459: Cost for combat vehicle internal structure is based on unrounded values
++ Issue #440: Combat Vehicle Chassis Mod [Flotation Hull] can be added to non hovercraft, VTOLs, WiGEs, and conventional fighters
++ Issue #443: Auto Fill on Battle Armor puts more slots than the part can sustain
++ Issue #457: Can't add Maritime Escape Pod
++ Issue #460: Cost for heavy support lasers on a support vehicle includes half a ton of power amplifiers
++ Issue #456: Save menu command does nothing when unit is invalid
++ Issue #455: Spot welders aren't treated as energy weapons
++ Issue #480: "Vacuum protection requires fusion engine" neither true nor applicable to environmental sealing
++ Issue #461: Removed items of Aerospace Fighter are still on the equipment list
++ Issue #463: Can't mount non-weapon equipment in pintle mounts
++ Issue #466: Preview summary screen does not update era availability
++ Issue #471: Trouble telling whether a unit is valid or not
++ Issue #474: Adding/removing Environmental Sealing to/from critical slots on combat vehicles
++ Issue #479: Additional tons of ammunition for one-shot missile launchers available
++ Issue #483: VTOL Jet Booster on a combat VTOL disappears from Equipment tab once assigned a location
++ PR #413: Aerospace record sheet overhaul, part 1 (fighters, fixed wing support, small craft)
++ PR #491: Aerospace record sheet overhaul, part 2 (large craft)
++ Issue #475: Adding many items on a combat vehicle also adds a trailer hitch
++ Issue #495: Some things that should't be pod-mountable are anyway
++ PR #499: Indicate when equipment stats are variable on equipment tab
++ Issue #493: Blue Shield PFD problems on vehicles
++ Issue #489: Disappearing OmniVehicle pod-mounted cargo
++ Issue #492: Problems with cargo weights for combat vehicles under Transport section of Structure/Armor
++ Issue #497: Superchargers can be added to units that shouldn't be able to use them
++ PR #509: Set cargo bay size by weight or capacity
++ Issue #510: Restrict armored components to mechs.
++ Issue #511: No dual turrets for WiGE vehicles
++ Issue #496: SRCS on Mechs can't be assigned a location, and thus isn't saved
++ Issue #502: Protomech's equipment database is not sorted properly by weight
++ Issue #501: I can remove the base 10 heat sinks that come with an engine
++ Issue #515: External fuel tanks should be available to ICE and FC combat vehicles
++ Issue #517: Non-mech units loaded from cache sometimes save with mtf extension
++ Issue #522: Industrial 'mech Envi Sealing Cost
++ Issue #525: Some support vehicle chassis modifications should require armor
++ Issue #500: I can do many illegal things with industrial equipment
++ Issue #529: Problems with Omnis and armored components or things mounted in sponson turrets
++ PR #544: Infantry Record Sheet rework
++ Issue #545: MASC won't remove from Assign Crits if removed from Structure Armor Tab
+
+v0.47.4 (2020-2-09 2200 UTC)
++ Issue #416: Issue with Crit Splitting on the Right Torso with big Artillery cannons/Arrow IV
++ Issue #418: CASE/CASE II can be armored
++ Issue #419: Cannot see the quirks on the unit cache
++ Issue #420: Cannot make Superheavy VTOL
++ Issue #421: Clan BattleArmor using IS armor Weights
++ Issue #422: Cockpit Command Console costs 2 tons when armored.
++ Issue #433: Infantry not retaining specializations or equipment
++ PR #434: Expand theme support and include dark themes
+
+v0.47.3 (2020-2-01 2200 UTC) 
++ Issue #371: Capital Missile Bays wrongly grouped as Tele (also warnings on load)
++ Issue #375: Maximum armor calculation is incorrect for Warships
++ Issue #376: Can't build Primitive Jumpships
++ PR #382: Show patchwork armor tech base when unit is mixed tech.
++ Issue #384: Dropship collars rounding issues. [Errata]
++ Issue #388: M-pods not available for Combat Vees
++ Issue #390: Other Equipment tab for aerospace fighters and dropships show all equipment
++ Issue #391: BA Standard Prototype armor doesn't show Crit slots to allocate
++ Issue #386: Armor Calculation Issue with Primitive Jumpship
++ Issue #385: Dropship armor missing - Possible weight calculation issue
++ Issue #316: Request: allow to drop the engines for the trailer vehicle
++ Issue #395: Crew for SV - Minimum crew calculation (errata)
++ PR #397: External fonts - On some systems the list of fonts for printing record sheets does not include all system fonts.
+           Placing a font file in the data/fonts directory will make it available to MML even if the system does not.
++ PR #398: Vehicle Record Sheet Overhaul
++ Issue #42: Can't print naval vehicles
++ Issue #403: Infantry Weight doesn't Update
++ Issue #406: Space Station - Military Option is Selected Whenever You Switch Weight
++ Issue #315: Hull equipment on WS Record Sheet
++ Issue #412: Partial Wings only requires a half of tonnage to be armored
+
+v0.47.2 (2019-11-15 2000 UTC)
++ Issue #365: Protomek Tab is missing its fluff section
++ Issue #367: Rail Support Vehicle - External Power Pickup not saving
++ Issue #369: Issues with Mirroring Aero units.
+
+v0.47.1 (2019-11-05 0300 UTC)
++ Issue #174: Replace Java-based open dialog with OS native dialog
++ Issue #337: Cost Calculation / Rules: Repair Facility on Space Stations
++ PR #346: Allow command console with superheavy/small cockpit
++ Issue #341: Sort the database won't work well in decimal point level
++ Issue #344: Attempt to changing Protomech's armor to Electric Discharge makes the unit keep invalid when using Standard armor
++ PR #351:  Allow superheavy industrial mechs
++ Issue #352: Large engine crits not allocated correctly
++ PR #339: Support vehicle construction (includes ground, S/M naval, and fixed wing; airship, satellite, and large naval
+           still require MegaMek support).
++ PR #358: Splash Screen
+
+v0.47.0 (2019-08-21 0300 UTC)
++ Issue #336: Quad Battlemechs are unable to allocate industrial physical weapons to their side torsos
+
+v0.46.0 (Stable) (2019-08-20 1900 UTC)
+
+v0.46.0-rc.2 (2019-08-12 0100 UTC)
++ Issue #333: ASF printing - Missing armor pips
+
+v0.46.0-rc.1 (2019-07-23 0300 UTC)
++ Issue #280: Wrong rounding for Partial Wing
++ Issue #279: BA SRM Torpedo ammo fails to load
++ Issue #281: Issue printing BV to Record Sheet
++ Issue #283: Cost Calculation issue for Warships
++ Issue #287: Cannot remove gyro from interface equipped mech
++ Issue #288: Maximum armor on a jumpship is too high
++ Issue #289: other problems allocating armor to primitive jumpships
++ Issue #290: problems with the export to clipboard (text) function
++ Issue #291: Problem with ammunition display in the text tech readout output for large spacecraft
++ Issue #292: BA Saving of IS BA ECM as wrong type
++ Issue #300: Ultralight battlemech with Partial Wing only raise Jump MP by 1.
++ Issue #297: Improved Heavy Gauss Rifle can be mounted on the vehicle turret and can be used by the unit without fusion or fission engine.
++ Issue #301: LAM reports Walk MP same as its Jump MP
++ Issue #302: Medium Shield doesn't affect Jump MP at all
++ Issue #299: Equipment tab does not refresh when unit type changes
++ Issue #306: Clan Vehicular Jump Jets
++ Issue #304: Double Sponson Weight
++ Issue #305: Mixed IS techbase & Clan BA Fire Resistant
++ Issue #313: Bomb Bay is unavailable for LAM
++ Issue #185: Battle Armour Tube Artillery Ammo/Slot limit
++ Issue #311: Incorrect heat for Nova CEWS
++ Issue #320: Cannot add heat sinks after changing engine type
++ Bug: Maximum docking hardpoints not updating when JS/WS/SS tonnage changes.
++ PR #326: Removed proprietary fonts from distribution. Users can select the font for use in record sheet printing from the
+           configuration dialog.
++ Issue #324: Improved Heavy Gauss can be split between Arms and Torsos
++ Issue #325: Engine Free heat sink count overflows variable when changing weight on an Omni mech
+
+v0.45.4 (2019-03-24 1700 UTC)
++ Fixed vehicle and aero slot calculations for patchwork armor.
++ Issue #202: Clan Improved Autocannon 20 has no standard ammunition
++ Issue #249: Warship Validation error
++ Issue #247: Patchwork Armour Broken on Vehicles
++ Issue #250: Armouring Split Components Shows and Counts Incorrect Tonnage
++ Issue #254: Second Printed Vee Name in All Caps
++ Issue #252: Heat Sink pips not printing properly
++ Issue #260:  Some issue to allocate the components of LAM
++ Issue #261: LAM's motive type doesn't change the weight of its conversion equipment.
++ Issue #7: Pilot name printing on RSs
++ Issue #271: Bug of interaction with Partial Wing, Improved Jump Jet and Hardened Armor
++ PR #262: Add buttons to clone aerospace side locations.
++ PR #273: Advanced aerospace record sheet printing
++ Issue #272: Modular Armor effectively prevents to put Jump Jet
++ Issue #267: Dropship armor values calculating and auto-allocating incorrectly
++ Issue #276: Auto allocate skips advanced aerospace side rear locations
+
+v0.45.3 (2019-02-12 0500 UTC)
++ Issue #223: Quad Protomech engine weight
++ Bug: Missing codecs to display fluff image on record sheets.
++ Issue #228: BA VTOL and UMU movement types
++ Issue #230: Protomech Weapons
++ Issue #232: docking hardpoint limits incorrect
++ Issue #222: Protomech armor glitches
++ Issue #231: Stack Overflow Exception while saving Battle Armor
++ Issue #234: Spheroid dropship side arc equipment assigned to wrong location
++ Issue #240: Long range for ATM Standard incorrect on printed record sheets
++ Issue #242: Enters bad state when changing clan mech tonnage
++ Issue #238: Aero recordsheet not printing correctly
++ Use current BT logo on record sheets.
++ Issue #237: Large amounts of weapons overtax warship creation
++ Added "Printing" tab to configuration dialog with some options to customize record sheets (mechs only for now).
+
+v0.45.2 (2018-11-18 0200 UTC)
+>>>>>>> origin/master
 + Switched build system from ant to gradle.
 + Bug: Aerospace transport tab does not refresh when tech base/year/level changes.
 + Issue #195: Multiple Items of One Ammo Type Don't Add to Available Tonnage for Large Craft

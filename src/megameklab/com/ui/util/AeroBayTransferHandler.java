@@ -13,6 +13,13 @@
  */
 package megameklab.com.ui.util;
 
+import megamek.common.*;
+import megamek.common.weapons.bayweapons.BayWeapon;
+import megameklab.com.ui.EntitySource;
+import megameklab.com.util.UnitUtil;
+import org.apache.logging.log4j.LogManager;
+
+import javax.swing.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
@@ -23,37 +30,18 @@ import java.util.Collections;
 import java.util.List;
 import java.util.StringJoiner;
 
-import javax.swing.JComponent;
-import javax.swing.JTable;
-import javax.swing.JTree;
-import javax.swing.TransferHandler;
-
-import megamek.common.AmmoType;
-import megamek.common.Entity;
-import megamek.common.LocationFullException;
-import megamek.common.Mounted;
-import megamek.common.WeaponType;
-import megamek.common.weapons.bayweapons.BayWeapon;
-import megameklab.com.MegaMekLab;
-import megameklab.com.ui.EntitySource;
-import megameklab.com.util.CriticalTableModel;
-import megameklab.com.util.UnitUtil;
-
 /**
  * Handles drag-and-drop for aerospace units that use weapon bays. Most of the work of adding, removing,
  * and changing equipment locations is done by the JTree for the weapon arc.
  * 
  * @author Neoancient
- *
  */
 public class AeroBayTransferHandler extends TransferHandler {
-    
-    /**
-     * 
-     */
     private static final long serialVersionUID = 2534394664060762469L;
     
     private EntitySource eSource;
+
+    public static final String EMTPYSLOT = "EmptySlot";
     
     /* Aliases for local usage.
      * When moving ammo, the default is to move a single ton (or whatever the atomic value is) at a time.
@@ -86,9 +74,7 @@ public class AeroBayTransferHandler extends TransferHandler {
                 }
             }
         } catch (Exception ex) {
-            MegaMekLab.getLogger().error(AeroBayTransferHandler.class,
-                    "importData(TransferSupport)", //$NON-NLS-1$
-                    ex);
+            LogManager.getLogger().error(ex);
             return false;
         }
         if (eqList.isEmpty()) {
@@ -140,8 +126,7 @@ public class AeroBayTransferHandler extends TransferHandler {
                                 m.setShotsLeft(mount.getUsableShotsLeft());
                             }
                         } catch (LocationFullException e) {
-                            // TODO Auto-generated catch block
-                            e.printStackTrace();
+                            LogManager.getLogger().error(e);
                         }
                     }
                 } else {
@@ -198,19 +183,19 @@ public class AeroBayTransferHandler extends TransferHandler {
         List<Mounted> mounted = new ArrayList<>();
         try {
             String str = (String) support.getTransferable().getTransferData(DataFlavor.stringFlavor);
+            if (str.equals(EMTPYSLOT)) {
+                return false;
+            }
             if (str.contains(":")) {
                 str = str.substring(0, str.indexOf(":"));
             }
             for (String field : str.split(",")) {
                 mounted.add(eSource.getEntity().getEquipment(Integer.parseInt(field)));
             }
-        } catch (NumberFormatException e) {
-            e.printStackTrace();
-        } catch (UnsupportedFlavorException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (NumberFormatException | UnsupportedFlavorException | IOException e) {
+            LogManager.getLogger().error(e);
         }
+
         // not actually dragged a Mounted? not transferable
         if (mounted.isEmpty()) {
             return false;
@@ -256,13 +241,8 @@ public class AeroBayTransferHandler extends TransferHandler {
                 ((BayWeaponCriticalTree)source).removeExported((String)data.getTransferData(DataFlavor.stringFlavor),
                         action);
             } catch (Exception ex) {
-                MegaMekLab.getLogger().error(AeroBayTransferHandler.class,
-                        "exportDone(JComponent,Transferable,action", //$NON-NLS-1$
-                        ex);
+                LogManager.getLogger().error(ex);
             }
         }
     }
-    
-    
-
 }
